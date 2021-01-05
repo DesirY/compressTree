@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="86123b03-b229-4a2f-997d-6081b2563f34" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+        <option value="JavaScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectId" id="1m86wS1sg26I2alpElszXLpWYlS" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="Errors" />
+    <property name="vue.rearranger.settings.migration" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="F:\WebstormProjects\compressTree\js" />
+      <recent name="F:\WebstormProjects\compressTree\js\D3" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="F:\WebstormProjects\compressTree\js" />
+      <recent name="F:\WebstormProjects\compressTree\data" />
+    </key>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="86123b03-b229-4a2f-997d-6081b2563f34" name="Default Changelist" comment="" />
+      <created>1608863108515</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1608863108515</updated>
+      <workItem from="1608863109614" duration="18953000" />
+      <workItem from="1608905937922" duration="21053000" />
+      <workItem from="1609119805231" duration="9467000" />
+      <workItem from="1609144457390" duration="5522000" />
+      <workItem from="1609150024909" duration="394000" />
+      <workItem from="1609203626511" duration="23798000" />
+      <workItem from="1609289638817" duration="21520000" />
+      <workItem from="1609810923055" duration="1314000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="1103" y="391" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1608863154743">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="1103" y="391" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1608863154743" />
+    <state x="740" y="275" key="FileChooserDialogImpl" timestamp="1609309882041">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="740" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1609309882041" />
+    <state x="461" y="164" key="SettingsEditor" timestamp="1609144391396">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="461" y="164" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1609144391396" />
+    <state x="681" y="261" width="582" height="524" key="StructurePopup" timestamp="1609147613825">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="681" y="261" width="582" height="524" key="StructurePopup/0.0.1920.1040@0.0.1920.1040" timestamp="1609147613825" />
+    <state x="616" y="240" key="run.anything.popup" timestamp="1609310074164">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="616" y="240" key="run.anything.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1609310074164" />
+    <state x="600" y="200" width="894" height="840" key="search.everywhere.popup" timestamp="1609301202492">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="600" y="200" width="894" height="840" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1609301202492" />
+    <state x="450" y="184" width="670" height="676" key="search.everywhere.popup/0.23.1440.837@0.23.1440.837" timestamp="1608980162843" />
+  </component>
+</project>
