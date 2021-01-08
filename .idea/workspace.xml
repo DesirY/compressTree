@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BranchesTreeState">
+    <expand />
+    <select />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="86123b03-b229-4a2f-997d-6081b2563f34" name="Default Changelist" comment="" />
+    <list default="true" id="86123b03-b229-4a2f-997d-6081b2563f34" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/js/nodesProcessing.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/nodesProcessing.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/js/rendering.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/rendering.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/js/treeObj.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/treeObj.js" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -15,7 +24,11 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectId" id="1m86wS1sg26I2alpElszXLpWYlS" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -54,13 +67,32 @@
       <workItem from="1609203626511" duration="23798000" />
       <workItem from="1609289638817" duration="21520000" />
       <workItem from="1609810923055" duration="1314000" />
+      <workItem from="1609896895478" duration="398000" />
+      <workItem from="1609988463617" duration="10502000" />
+      <workItem from="1610075533765" duration="4018000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
   <component name="WindowStateProjectService">
+    <state x="1013" y="306" key="#Web_Browsers" timestamp="1609989763593">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="1013" y="306" key="#Web_Browsers/0.0.1920.1040@0.0.1920.1040" timestamp="1609989763593" />
     <state x="1103" y="391" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1608863154743">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>

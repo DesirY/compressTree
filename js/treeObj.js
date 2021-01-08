@@ -90,22 +90,6 @@ function Tree(root){
     return result;
   }
 
-  /**
-   * 根据该层节点的伸缩程度，重新计算某一层节点的坐标
-   * 该层的节点
-   * @param layerNodes
-   * @param extraExtension  这里代表整行是否需要延长（当某个节点的展开长度过于长的时候）或者缩短(当没有子节点的节点合并的时候)
-   */
-  function reComputeLayerCoordinate(layerNodes, extraExtension){
-    // 计算第一个节点的起始位置
-    layerNodes[0].x = (width - (layerNodes.length+extraExtension)*nodeWid)/2 + nodeWid*layerNodes[0].extension*0.5;
-
-    //计算其余节点的位置
-    for(let i = 1; i < layerNodes.length; i++){
-      layerNodes[i].x = layerNodes[i-1].x+0.5*nodeWid*layerNodes[i-1].extension+0.5*nodeWid*layerNodes[i].extension;
-    }
-  }
-
   /***
    * 重新计算节点的坐标
    *  -在展开节点时。部分节点的extension设置大数值使得相邻节点之间有空隙，之后再将extension复原重新绘制
@@ -223,7 +207,7 @@ function Tree(root){
    * @param indexLst
    * 要平移的节点index，要么是一个节点，要么是连续的多个节点
    * @param offset
-   * 这些节点的水平向右偏移量
+   * 这些节点的水平向右/左偏移量
    */
   Tree.prototype.centering = function (layer, indexLst, offset){
     // 在indexLst左边和右边的节点
@@ -262,6 +246,9 @@ function Tree(root){
         rightNodes[0].x = start - rightNodes[0].extension*nodeWid/2;
         for (let i = 1; i < rightNodes.length; i++){
           rightNodes[i].x = rightNodes[i-1].x - (rightNodes[i].extension+rightNodes[i-1].extension)*nodeWid/2;
+          if (i !== 1 && rightNodes[i-1].broID === 0){
+            rightNodes[i].x -= familyGap*nodeWid;
+          }
         }
 
         // 平移目前的节点
@@ -286,6 +273,9 @@ function Tree(root){
         leftNodes[0].x = start - leftNodes[0].extension*nodeWid/2;
         for (let i = 1; i < leftNodes.length; i++){
           leftNodes[i].x = leftNodes[i-1].x + (leftNodes[i].extension+leftNodes[i-1].extension)*nodeWid/2;
+          if(leftNodes[i].broID === 0){
+            leftNodes[i].x += familyGap*nodeWid;
+          }
         }
       }
 
@@ -309,9 +299,12 @@ function Tree(root){
           leftNodes[i].extension -= offset/leftNodes.length;
         }
         //重新计算压缩节点的坐标
-        leftNodes[0].x = start + leftNodes[0].extension*nodeWid/2;
+        leftNodes[0].x = start - leftNodes[0].extension*nodeWid/2;
         for (let i = 1; i < leftNodes.length; i++){
           leftNodes[i].x = leftNodes[i-1].x + (leftNodes[i].extension+leftNodes[i-1].extension)*nodeWid/2;
+          if(leftNodes[i].broID === 0){
+            leftNodes[i].x += familyGap*nodeWid;
+          }
         }
 
         // 平移目前的节点
@@ -336,6 +329,9 @@ function Tree(root){
         rightNodes[0].x = start + rightNodes[0].extension*nodeWid/2;
         for (let i = 1; i < rightNodes.length; i++){
           rightNodes[i].x = rightNodes[i-1].x - (rightNodes[i].extension+rightNodes[i-1].extension)*nodeWid/2;
+          if (i !== 1 && rightNodes[i-1].broID === 0){
+            rightNodes[i].x -= familyGap*nodeWid;
+          }
         }
       }
     }
@@ -366,6 +362,68 @@ function Tree(root){
     return [];
   }
 
+}
+
+/**
+ * 根据该层节点的伸缩程度，重新计算某一层节点的坐标
+ * 该层的节点
+ * @param layerNodes
+ * @param extraExtension  这里代表整行是否需要延长（当某个节点的展开长度过于长的时候）或者缩短(当没有子节点的节点合并的时候)
+ */
+function reComputeLayerCoordinate(layerNodes, extraExtension){
+  // 计算该层有多少个家族的孩子
+  let numOfFamily = 0;
+  for (let i = 0; i < layerNodes.length; i++){
+    if (layerNodes[i].broID === 0){
+      numOfFamily++;
+    }
+  }
+  // 计算这一层分隔不同家族的空间大小
+  let gapExtension = (numOfFamily-1)*familyGap;
+
+  // 计算第一个节点的起始位置
+  layerNodes[0].x = (width - (layerNodes.length+extraExtension)*nodeWid - gapExtension*nodeWid)/2 + nodeWid*layerNodes[0].extension*0.5;
+
+  //计算其余节点的位置
+  for(let i = 1; i < layerNodes.length; i++){
+    layerNodes[i].x = layerNodes[i-1].x+0.5*nodeWid*layerNodes[i-1].extension+0.5*nodeWid*layerNodes[i].extension;
+    // 如果该节点为1，就往后平移一个familyGap
+    if (layerNodes[i].broID === 0){
+      layerNodes[i].x += familyGap*nodeWid;
+    }
+  }
+}
+
+/**
+ * 根据该层节点的伸缩程度，重新计算某一层节点的坐标
+ * 该层的节点，该方法的区别在于：他会修改 initialxy的值只在初始化的时候调用
+ * @param layerNodes
+ * @param extraExtension  这里代表整行是否需要延长（当某个节点的展开长度过于长的时候）或者缩短(当没有子节点的节点合并的时候)
+ */
+function reInitialComputeLayerCoordinate(layerNodes, extraExtension){
+  // 计算该层有多少个家族的孩子
+  let numOfFamily = 0;
+  for (let i = 0; i < layerNodes.length; i++){
+    if (layerNodes[i].broID === 0){
+      numOfFamily++;
+    }
+  }
+  // 计算这一层分隔不同家族的空间大小
+  let gapExtension = (numOfFamily-1)*familyGap;
+
+  // 计算第一个节点的起始位置
+  layerNodes[0].x = (width - (layerNodes.length+extraExtension)*nodeWid - gapExtension*nodeWid)/2 + nodeWid*layerNodes[0].extension*0.5;
+  layerNodes[0].initialX = layerNodes[0].x;
+
+  //计算其余节点的位置
+  for(let i = 1; i < layerNodes.length; i++){
+    layerNodes[i].x = layerNodes[i-1].x+0.5*nodeWid*layerNodes[i-1].extension+0.5*nodeWid*layerNodes[i].extension;
+    // 如果该节点为1，就往后平移一个familyGap
+    if (layerNodes[i].broID === 0){
+      layerNodes[i].x += familyGap*nodeWid;
+    }
+    layerNodes[i].initialX = layerNodes[i].x;
+  }
 }
 
 /***

@@ -29,6 +29,7 @@ function preprocessing(root){
     root.descendants()[i].index = index;
     index++;
   }
+
   return root;
 
   function traverse(node){

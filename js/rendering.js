@@ -13,6 +13,7 @@ let layers;   //绘制该树的层数
 let separation;   //svg中层与层之前的高度
 let numOfEachLayer = [];  //每层的节点个数
 const gap = 1;     // 节点和边之间的间隔大小
+const familyGap = 0.5;    // 不同父母的节点之间的gap，gap*节点宽度为实际的间隔
 
 let Gradient;   // 颜色渐变器
 let links;     // 边元素
@@ -117,7 +118,9 @@ function renderInit(){
             .attr("height", nodeHei)
             .attr("fill", "#ced4da")
             .attr("fill-opacity", "0.3")
-            .attr("stroke", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", "0.7")
+            .attr("stroke-opacity", "1")
             .attr("id", d => "node"+d.index)    // 为每个节点分配ID
             .on("dblclick", function (){
               console.log("rect单击事件")
@@ -139,24 +142,25 @@ function renderInit(){
               tree.recover();
               detailDisplayEnter(d.index);
             });
+
         // 绘制分割线
-        if(d.layerID !== numOfEachLayer[d.depth]-1){
-          d3.select(this).append("line")
-              .attr("x1", d.x+nodeWid*d.extension/2)
-              .attr("y1", d.y-nodeHei/2)
-              .attr("x2", d.x+nodeWid*d.extension/2)
-              .attr("y2", d.y+nodeHei/2)
-              .attr("stroke", "orange")
-              .attr("stroke-width", "1")
-              .attr("stroke-dasharray", d => {
-                if(d.broID+1 !== d.broNum){
-                  return "2, 2";
-                }
-                else{
-                  return "none";
-                }
-              });
-        }
+        // if(d.layerID !== numOfEachLayer[d.depth]-1){
+        //   d3.select(this).append("line")
+        //       .attr("x1", d.x+nodeWid*d.extension/2)
+        //       .attr("y1", d.y-nodeHei/2)
+        //       .attr("x2", d.x+nodeWid*d.extension/2)
+        //       .attr("y2", d.y+nodeHei/2)
+        //       .attr("stroke", "orange")
+        //       .attr("stroke-width", "1")
+        //       .attr("stroke-dasharray", d => {
+        //         if(d.broID+1 !== d.broNum){
+        //           return "2, 2";
+        //         }
+        //         else{
+        //           return "none";
+        //         }
+        //       });
+        // }
 
       });
 }
@@ -341,10 +345,10 @@ function detailDisplayEnter(index){
   // 分别计算三代
   // tree.centering(tree.nodes[index].depth, focus, (center-cFocus)/nodeWid);
   if(parents.length !== 0){
-    // tree.centering(tree.nodes[index].depth-1, parents, (center-cParents)/nodeWid);
+    tree.centering(tree.nodes[index].depth-1, parents, (center-cParents)/nodeWid);
   }
   if(children.length !== 0){
-    // tree.centering(tree.nodes[index].depth+1, children, (center-cChildren)/nodeWid);
+    tree.centering(tree.nodes[index].depth+1, children, (center-cChildren)/nodeWid);
   }
 
 
@@ -362,7 +366,7 @@ function compressTreeEnter(){
 }
 
 /**
- * 整棵树恢复为迷人状态
+ * 整棵树恢复为初始状态
  */
 function recoverTreeEnter(){
   tree.recover();
@@ -391,6 +395,19 @@ function shortestPathEnter(src, des){
   renderUpdate();
 }
 
+/***
+ * 重新调整每一层节点的坐标
+ * @param tree
+ */
+function reConstructCoordi(tree){
+  // 每一行重新计算位置
+  for (let i = 0; i < layers; i++){
+    let nodeSet = tree.getNodesByLayer(i);
+    // 该方法改变的是initialxy 和 xy
+    reInitialComputeLayerCoordinate(nodeSet, 0);
+  }
+}
+
 
 //读取文件
 d3.csv("./data/301_Friedrich-Wieck_200.csv").then(function (data){
@@ -411,8 +428,16 @@ d3.csv("./data/301_Friedrich-Wieck_200.csv").then(function (data){
   // 节点预处理：为每个节点计算坐标，索引，并标注其在兄弟姐妹中的位置
   let rootNode = preprocessing(rootTemp);     // rootTemp和rootNode指向的是同一个对象
 
-  // 初始化树
+  // 初始化树，并调整每一层的节点位置，使不同父母接节点之间有间隙
   tree = new Tree(rootNode);
+  reConstructCoordi(tree);
+  console.log(tree);
+
+  /**
+   * 重新计算节点坐标
+   *  -原来的节点不同父母的节点是靠在一起的
+   *  -更新为不同父母节点的孩子之间有一个空隙
+   */
 
   // svg添加双击compress树事件
   svg.on("dblclick", function (){
@@ -437,7 +462,7 @@ d3.csv("./data/301_Friedrich-Wieck_200.csv").then(function (data){
   // compressTreeEnter();
 
   //显示两点之间的最短路径
-  shortestPathEnter(2, 195);
+  // shortestPathEnter(2, 195);
 
 
 
