@@ -66,42 +66,42 @@ function renderInit(){
             });
 
         // 绘制边的分割线
-        if(d.target.broID === 0){
-          // 第一个孩子节点
-          d3.select(this).append("line")
-              .attr("stroke", "white")
-              .attr("stroke-width", "0.8")
-              .attr("x1", d => {
-                return d.source.x - (d.source.extension>1? 1:d.source.extension)*nodeWid/2;
-              })
-              .attr("y1", d =>{
-                return d.source.y+(nodeHei+gap*2)/2;
-              })
-              .attr("x2", d => {
-                return d.target.x-(d.target.extension>1? 1:d.target.extension)*nodeWid/2;
-              })
-              .attr("y2", d => {
-                return d.target.y-(nodeHei+gap*2)/2;
-              });
-        }
-        else if(d.target.broID === d.target.broNum-1){
-          // 最后一个孩子节点
-          d3.select(this).append("line")
-              .attr("stroke", "white")
-              .attr("stroke-width", "0.8")
-              .attr("x1", d => {
-                return d.source.x + (d.source.extension>1? 1:d.source.extension)*nodeWid/2;
-              })
-              .attr("y1", d =>{
-                return d.source.y+(nodeHei+gap*2)/2;
-              })
-              .attr("x2", d => {
-                return d.target.x+(d.target.extension>1? 1:d.target.extension)*nodeWid/2;
-              })
-              .attr("y2", d => {
-                return d.target.y-(nodeHei+gap*2)/2;
-              });
-        }
+        // if(d.target.broID === 0){
+        //   // 第一个孩子节点
+        //   d3.select(this).append("line")
+        //       .attr("stroke", "white")
+        //       .attr("stroke-width", "0.8")
+        //       .attr("x1", d => {
+        //         return d.source.x - (d.source.extension>1? 1:d.source.extension)*nodeWid/2;
+        //       })
+        //       .attr("y1", d =>{
+        //         return d.source.y+(nodeHei+gap*2)/2;
+        //       })
+        //       .attr("x2", d => {
+        //         return d.target.x-(d.target.extension>1? 1:d.target.extension)*nodeWid/2;
+        //       })
+        //       .attr("y2", d => {
+        //         return d.target.y-(nodeHei+gap*2)/2;
+        //       });
+        // }
+        // else if(d.target.broID === d.target.broNum-1){
+        //   // 最后一个孩子节点
+        //   d3.select(this).append("line")
+        //       .attr("stroke", "white")
+        //       .attr("stroke-width", "0.8")
+        //       .attr("x1", d => {
+        //         return d.source.x + (d.source.extension>1? 1:d.source.extension)*nodeWid/2;
+        //       })
+        //       .attr("y1", d =>{
+        //         return d.source.y+(nodeHei+gap*2)/2;
+        //       })
+        //       .attr("x2", d => {
+        //         return d.target.x+(d.target.extension>1? 1:d.target.extension)*nodeWid/2;
+        //       })
+        //       .attr("y2", d => {
+        //         return d.target.y-(nodeHei+gap*2)/2;
+        //       });
+        // }
 
 
       });
@@ -111,15 +111,34 @@ function renderInit(){
       .classed("nodeG", "true")
       .each(function (d, i){
         // 绘制节点
+        /**
+         * 如果是虚点，填充部分为空
+         * 如果是虚点对应的实点，边框是虚线
+         */
         d3.select(this).append("rect")
             .attr("x", d.x-nodeWid*d.extension/2)
             .attr("y", d.y-nodeHei/2)
             .attr("width", nodeWid*d.extension)
             .attr("height", nodeHei)
-            .attr("fill", "#ced4da")
+            .attr("fill", d =>{
+              if (d.virtualStatus === 1){
+                return "white";
+              }
+              else{
+                return "#ced4da";
+              }
+            })
             .attr("fill-opacity", "0.3")
             .attr("stroke", "black")
             .attr("stroke-width", "0.7")
+            .attr("stroke-dasharray", d => {
+              if (d.virtualStatus === 2){
+                return "2,2";
+              }
+              else{
+                return null;
+              }
+            })
             .attr("stroke-opacity", "1")
             .attr("id", d => "node"+d.index)    // 为每个节点分配ID
             .on("dblclick", function (){
@@ -175,7 +194,7 @@ function renderUpdate(){
   let nodesUpdate = d3.selectAll(".nodeG").selectAll("rect");
   let separationUpdate = d3.selectAll(".nodeG").selectAll("line");
   let linksUpdate = d3.selectAll(".linkG").selectAll("path");
-  let linksSeparationUpdate = d3.selectAll(".linkG").selectAll("line");
+  // let linksSeparationUpdate = d3.selectAll(".linkG").selectAll("line");
 
   // 节点过渡
   nodesUpdate.transition()
@@ -186,14 +205,15 @@ function renderUpdate(){
       .attr("fill-opacity", function (d){
         return 0.3/Math.sqrt(d.extension);   // 根据 extension = 1 时， opacity 为 0.3 计算
   });
-  // 分隔线过渡
-  separationUpdate.filter(d => {
-        return d.layerID !== numOfEachLayer[d.depth]-1;
-      })
-      .transition()
-      .duration(500)
-      .attr("x1", d => d.x+nodeWid*d.extension/2)
-      .attr("x2", d => d.x+nodeWid*d.extension/2);
+
+  // // 分隔线过渡
+  // separationUpdate.filter(d => {
+  //       return d.layerID !== numOfEachLayer[d.depth]-1;
+  //     })
+  //     .transition()
+  //     .duration(500)
+  //     .attr("x1", d => d.x+nodeWid*d.extension/2)
+  //     .attr("x2", d => d.x+nodeWid*d.extension/2);
 
   // 边过渡
   linksUpdate.transition()
@@ -213,40 +233,40 @@ function renderUpdate(){
       });
 
   // 边分隔线过渡
-  linksSeparationUpdate.transition()
-      .duration(500)
-      .attr("x1", d => {
-        if (d.target.broID === 0){
-          return d.source.x - (d.source.extension>1? 1:d.source.extension)*nodeWid/2;
-        }
-        else if(d.target.broID === d.target.broNum-1){
-          return d.source.x + (d.source.extension>1? 1:d.source.extension)*nodeWid/2;
-        }
-      })
-      .attr("y1", d =>{
-        if (d.target.broID === 0){
-          return d.source.y+(nodeHei+gap*2)/2;
-        }
-        else if(d.target.broID === d.target.broNum-1){
-          return d.source.y+(nodeHei+gap*2)/2;
-        }
-      })
-      .attr("x2", d => {
-        if (d.target.broID === 0){
-          return d.target.x-(d.target.extension>1? 1:d.target.extension)*nodeWid/2;
-        }
-        else if(d.target.broID === d.target.broNum-1){
-          return d.target.x+(d.target.extension>1? 1:d.target.extension)*nodeWid/2;
-        }
-      })
-      .attr("y2", d => {
-        if (d.target.broID === 0){
-          return d.target.y-(nodeHei+gap*2)/2;
-        }
-        else if(d.target.broID === d.target.broNum-1){
-          return d.target.y-(nodeHei+gap*2)/2;
-        }
-      });
+  // linksSeparationUpdate.transition()
+  //     .duration(500)
+  //     .attr("x1", d => {
+  //       if (d.target.broID === 0){
+  //         return d.source.x - (d.source.extension>1? 1:d.source.extension)*nodeWid/2;
+  //       }
+  //       else if(d.target.broID === d.target.broNum-1){
+  //         return d.source.x + (d.source.extension>1? 1:d.source.extension)*nodeWid/2;
+  //       }
+  //     })
+  //     .attr("y1", d =>{
+  //       if (d.target.broID === 0){
+  //         return d.source.y+(nodeHei+gap*2)/2;
+  //       }
+  //       else if(d.target.broID === d.target.broNum-1){
+  //         return d.source.y+(nodeHei+gap*2)/2;
+  //       }
+  //     })
+  //     .attr("x2", d => {
+  //       if (d.target.broID === 0){
+  //         return d.target.x-(d.target.extension>1? 1:d.target.extension)*nodeWid/2;
+  //       }
+  //       else if(d.target.broID === d.target.broNum-1){
+  //         return d.target.x+(d.target.extension>1? 1:d.target.extension)*nodeWid/2;
+  //       }
+  //     })
+  //     .attr("y2", d => {
+  //       if (d.target.broID === 0){
+  //         return d.target.y-(nodeHei+gap*2)/2;
+  //       }
+  //       else if(d.target.broID === d.target.broNum-1){
+  //         return d.target.y-(nodeHei+gap*2)/2;
+  //       }
+  //     });
 
 }
 
@@ -318,10 +338,15 @@ function detailDisplayEnter(index){
   let focus = [index];
   let parents = tree.nodes[index].parent, children = tree.nodes[index].children;
 
+  let parent = [];
+  if (parents.length > 0){
+    parent = [parents[0]];
+  }
+
   // 分别计算三代
   tree.detailDisplay(tree.nodes[index].depth, focus, extension*2);
   if(parents.length !== 0){
-    tree.detailDisplay(tree.nodes[index].depth-1, parents, extension);
+    tree.detailDisplay(tree.nodes[index].depth-1, parent, extension);
   }
   if(children.length !== 0){
     tree.detailDisplay(tree.nodes[index].depth+1, children, extension);
@@ -331,21 +356,29 @@ function detailDisplayEnter(index){
   // 计算三代的中点 和 每代的中点
   let center = 0;
   let cFocus = tree.nodes[index].x, cParents = 0, cChildren = 0;
-  for (let i = 0; i < parents.length; i++){
-    cParents += tree.nodes[parents[i]].x;
+  for (let i =0; i < parent.length; i++){
+    cParents += tree.nodes[parent[i]].x;
   }
   for (let i = 0; i < children.length; i++){
     cChildren += tree.nodes[children[i]].x;
   }
-  cParents /= parents.length;
-  cChildren /= children.length;
-  center = (cFocus+cParents+cChildren)/3;
+
+  let sum = 1;
+  if (parent.length !== 0){
+    cParents /= parent.length;
+    sum++;
+  }
+  if (children.length !== 0){
+    cChildren /= children.length;
+    sum++;
+  }
+  center = (cFocus+cParents+cChildren)/sum;
 
   // 计算每一行的位移偏移量，作为参数传递
   // 分别计算三代
-  // tree.centering(tree.nodes[index].depth, focus, (center-cFocus)/nodeWid);
+  tree.centering(tree.nodes[index].depth, focus, (center-cFocus)/nodeWid);
   if(parents.length !== 0){
-    tree.centering(tree.nodes[index].depth-1, parents, (center-cParents)/nodeWid);
+    tree.centering(tree.nodes[index].depth-1, parent, (center-cParents)/nodeWid);
   }
   if(children.length !== 0){
     tree.centering(tree.nodes[index].depth+1, children, (center-cChildren)/nodeWid);
@@ -410,7 +443,7 @@ function reConstructCoordi(tree){
 
 
 //读取文件
-d3.csv("./data/301_Friedrich-Wieck_200.csv").then(function (data){
+d3.csv("./data/reConstructData/293_William-Bevan_216.csv").then(function (data){
   // 得到d3中tree的格式
   let treeTemp = d3.stratify().id(d=>d.name).parentId(d=>d.parent)(data);
   let rootTemp = d3.tree()(treeTemp);
@@ -425,6 +458,7 @@ d3.csv("./data/301_Friedrich-Wieck_200.csv").then(function (data){
     numOfEachLayer[rootTemp.descendants()[i].depth]++;
   }
 
+  console.log(rootTemp)
   // 节点预处理：为每个节点计算坐标，索引，并标注其在兄弟姐妹中的位置
   let rootNode = preprocessing(rootTemp);     // rootTemp和rootNode指向的是同一个对象
 

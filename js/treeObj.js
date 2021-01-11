@@ -61,6 +61,16 @@ function Tree(root){
     for(let i = 0; i < nodes.length; i++){
       result.push(new Node(nodes[i]))
     }
+
+    // 重新遍历一次，为实节点的父亲节点，继续增加父亲节点
+    for(let i = 0; i < nodes.length; i++){
+      if (result[i].virtualStatus === 2){
+        for (let j = 0; j < result[i].counterpart.length; j++){
+          result[i].parent.push(result[result[i].counterpart[j]].parent[0]);
+        }
+      }
+    }
+
     return result;
   }
 

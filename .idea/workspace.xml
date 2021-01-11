@@ -6,7 +6,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="86123b03-b229-4a2f-997d-6081b2563f34" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/data/reConstructData/293_William-Bevan_216.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/293_William-Bevan_216.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/293_William-Bevan_216.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/js/nodeObj.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/nodeObj.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/js/nodesProcessing.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/nodesProcessing.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/js/rendering.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/rendering.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/js/treeObj.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/treeObj.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,7 +40,7 @@
     <property name="DefaultHtmlFileTemplate" value="HTML File" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/data/reConstructData" />
     <property name="settings.editor.selected.configurable" value="Errors" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
@@ -44,8 +50,9 @@
       <recent name="F:\WebstormProjects\compressTree\js\D3" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="F:\WebstormProjects\compressTree\js" />
+      <recent name="F:\WebstormProjects\compressTree\data\reConstructData" />
       <recent name="F:\WebstormProjects\compressTree\data" />
+      <recent name="F:\WebstormProjects\compressTree\js" />
     </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -66,7 +73,8 @@
       <workItem from="1609810923055" duration="1314000" />
       <workItem from="1609896895478" duration="398000" />
       <workItem from="1609988463617" duration="10502000" />
-      <workItem from="1610075533765" duration="6917000" />
+      <workItem from="1610075533765" duration="7140000" />
+      <workItem from="1610327412645" duration="17335000" />
     </task>
     <servers />
   </component>
@@ -110,10 +118,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="616" y="240" key="run.anything.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1609310074164" />
-    <state x="600" y="200" width="894" height="840" key="search.everywhere.popup" timestamp="1609301202492">
+    <state x="600" y="200" width="894" height="840" key="search.everywhere.popup" timestamp="1610347099630">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="600" y="200" width="894" height="840" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1609301202492" />
+    <state x="600" y="200" width="894" height="840" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1610347099630" />
     <state x="450" y="184" width="670" height="676" key="search.everywhere.popup/0.23.1440.837@0.23.1440.837" timestamp="1608980162843" />
   </component>
 </project>
