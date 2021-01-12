@@ -506,4 +506,60 @@ Tree.prototype.recover = function (){
     this.nodes[i].extension = 1;
   }
 }
+/**
+ * 对树状结构进行鱼眼变换，只进行Y轴方向上的变换
+ *  -该变换为区域变换，也就是focus节点的一步邻居放大的倍数一样
+ *  -其余的节点回会进行压缩
+ * @param index  当前的focus节点index
+ * @param m      放大倍数
+ */
+Tree.prototype.fishEye = function (index, m){
+  // 得到focus节点所在层
+  let focusLayer = this.nodes[index].depth;
+
+  // 计算相邻层节点的Y坐标
+  let lastLayerNodes = this.nodesInEachLayer[focusLayer-1];
+  let nextLayerNodes = this.nodesInEachLayer[focusLayer+1];
+  // 备份Y坐标
+  let lastYCopy = this.nodes[lastLayerNodes[0]].y;
+  let nextYCopy = this.nodes[nextLayerNodes[0]].y;
+  let lastY = this.nodes[index].y - (this.nodes[index].y - this.nodes[lastLayerNodes[0]].y)*(1+m);
+  let nextY = this.nodes[index].y + (this.nodes[nextLayerNodes[0]].y - this.nodes[index].y)*(1+m);
+  for (let i = 0; i < lastLayerNodes.length; i++){
+    this.nodes[lastLayerNodes[i]].y = lastY;
+  }
+  for (let i = 0; i < nextLayerNodes.length; i++){
+    this.nodes[nextLayerNodes[i]].y = nextY;
+  }
+
+  // 计算其它层节点的Y坐标
+  for (let i = 0; i < this.height; i++){
+    if (Math.abs(i - focusLayer) > 1){
+      // 得到该层的所有节点，以及Y坐标
+      let layerNodes = this.nodesInEachLayer[i];
+      let layerY = this.nodes[layerNodes[0]].y;
+      // 计算鱼眼需要的一些系数
+      let bY = 12;   // 屏幕的交点
+      if (i - focusLayer > 0){
+        bY = height -12;    // 位于下面，则B点是在屏幕的下方
+      }
+      let cY = this.nodes[index].y;
+      let mR = 0;
+      if (i - focusLayer < 0){
+        mR = m/(1-(m+1)*((lastYCopy - cY)/(bY - cY)))
+      }
+      else {
+        mR = m/(1-(m+1)*((nextYCopy - cY)/(bY - cY)))
+      }
+      let beta = Math.abs(layerY-cY)/Math.abs(bY-cY);
+      let betaNew = (m+1)*beta/(m*beta+1);
+      //计算新的Y值
+      let newY = cY + (bY-cY)*betaNew;
+
+      for (let j = 0; j < layerNodes.length; j++){
+        this.nodes[layerNodes[j]].y = newY;
+      }
+    }
+  }
+}
 

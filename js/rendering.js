@@ -159,7 +159,18 @@ function renderInit(){
                */
               console.log("双击事件@");
               tree.recover();
+              // 展开三代
               detailDisplayEnter(d.index);
+              // 鱼眼变换
+              tree.fishEye(d.index, 1);
+              // 重新绘制
+              renderUpdate();
+            })
+            .on("mouse", function (){
+              /**
+               * 展开子节点，成为一个矩形，周围的边绕开
+               */
+              showChildrenAttributes(d.index);
             });
 
         // 绘制分割线
@@ -384,11 +395,65 @@ function detailDisplayEnter(index){
     tree.centering(tree.nodes[index].depth+1, children, (center-cChildren)/nodeWid);
   }
 
-
-
-  // 重新绘制
-  renderUpdate();
 }
+
+/**
+ * 显示子节点的属性
+ *  - 子节点集合上方出现容纳属性的矩形
+ *  - 左右的边为矩形的显示绕开
+ * @param index
+ */
+function showChildrenAttributes(index){
+  // 所显示矩形的左上角坐标x,y 以及长和宽;
+  let attrRect = [0, 0, 0, 100];
+  let focusNode = tree.nodes[index];  // 当前节点
+  let fNode = tree.nodes[focusNode.children[0]],
+      lNode = tree.nodes[focusNode.children[focusNode.children.length-1]];    // 第一个和最后一个节点
+  attrRect[0] = fNode.x - fNode.extension*nodeWid/2;
+  attrRect[1] = fNode.y - attrRect[3];
+  attrRect[2] = lNode.x + lNode.extension*nodeWid/2 - (fNode.x - fNode.extension*nodeWid/2);
+
+  // 得到与index节点位于同一层的左右两边节点，并处理节点，使开头结尾节点是有孩子节点
+  let focusLayer = focusNode.depth;
+  let focusLayerNodes = tree.getNodesByLayer(focusLayer);
+  let focusLeftNodes = [], focusRightNodes = [];
+  for (let i = 0; i < focusNode.layerID; i++){
+    focusLeftNodes.push(focusLayerNodes[i]);
+  }
+  for (let i = focusNode.layerID + 1; i < focusLayerNodes.length; i++){
+    focusRightNodes.push(focusLayerNodes[i]);
+  }
+  while(focusLeftNodes[0].children.length === 0){
+    focusLeftNodes.shift();
+  }
+  while(focusLeftNodes[focusLeftNodes.length-1].children === 0){
+    focusLeftNodes.pop();
+  }
+  while(focusRightNodes[0].children.length === 0){
+    focusRightNodes.shift();
+  }
+  while(focusRightNodes[focusRightNodes.length-1].children === 0){
+    focusRightNodes.pop();
+  }
+
+  // 计算该节点最右or最左的边，进一步计算出需要预留的空间
+  // 计算出最右的边 与 矩形左上角的交点
+
+
+
+
+
+
+
+
+  // 再次遍历左右节点的每一个空隙，看是否满足所需要的预留的空间，并标记每个节点需要平移的大小
+
+  // 输入两个点 和Y值，返回两点间的线段与 y 相交的 x 值 d 代表是节点的最右的边还是最左的边
+  function getInsectX(p1, p2, d, y){
+    return (p2[0]-p1[0])/(p2[1]-p1[1])*(p1[1]-y)+p1[0];
+  }
+}
+
 /**
  * 压缩整棵树
  *  -如果该节点没有孩子节点那么全部压缩到最小
@@ -443,7 +508,7 @@ function reConstructCoordi(tree){
 
 
 //读取文件
-d3.csv("./data/reConstructData/293_William-Bevan_216.csv").then(function (data){
+d3.csv("./data/301_Friedrich-Wieck_200.csv").then(function (data){
   // 得到d3中tree的格式
   let treeTemp = d3.stratify().id(d=>d.name).parentId(d=>d.parent)(data);
   let rootTemp = d3.tree()(treeTemp);
