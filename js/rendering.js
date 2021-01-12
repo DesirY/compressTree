@@ -449,9 +449,23 @@ function showChildrenAttributes(index){
   // 再次遍历左右节点的每一个空隙，看是否满足所需要的预留的空间，并标记每个节点需要平移的大小
 
   // 输入两个点 和Y值，返回两点间的线段与 y 相交的 x 值 d 代表是节点的最右的边还是最左的边
-  function getInsectX(p1, p2, d, y){
-    return (p2[0]-p1[0])/(p2[1]-p1[1])*(p1[1]-y)+p1[0];
-  }
+
+}
+
+/**
+ * 得到两个直线与 Y = y 这条直线的交点的x值
+ * @param p1
+ * 父亲节点
+ * @param p2
+ * p2是p1的一个孩子节点，也只有这种情况，该函数成立
+ * @param d
+ * 我们所求的边，这两个节点有左右两条边，d为0求左边的边，d为1求右边的边
+ * @param y
+ * @returns {*}
+ * 返回x值
+ */
+function getInsectX(p1, p2, d, y){
+  return (p2[0]-p1[0])/(p2[1]-p1[1])*(p1[1]-y)+p1[0];
 }
 
 /**
