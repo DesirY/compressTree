@@ -14,6 +14,7 @@ let separation;   //svg中层与层之前的高度
 let numOfEachLayer = [];  //每层的节点个数
 const gap = 1;     // 节点和边之间的间隔大小
 const familyGap = 0.5;    // 不同父母的节点之间的gap，gap*节点宽度为实际的间隔
+let attrRect;     // 显示属性的矩形框
 
 let Gradient;   // 颜色渐变器
 let links;     // 边元素
@@ -51,59 +52,7 @@ function renderInit(){
             .attr("stroke", "none")
             .attr("stroke-width", "0")
             .attr("fill", "url(#grad)")
-            .attr("d", function (d){
-              // 重新计算边
-              let srcWid = (d.source.extension>1? 1:d.source.extension)*nodeWid;   // 计算父节点的宽度
-              let srcStartX = d.source.x - srcWid/2;                                // 父节点的起始x坐标
-              let band = srcWid / d.target.broNum;            // 父节点每个brand的宽度
-              let tgtWid = (d.target.extension>1? 1:d.target.extension)*nodeWid;   // 计算孩子节点的宽度
-              let hei = nodeHei+gap*2;  // 增加节点的宽度,使节点与边之间留出空隙
-              let pathAttr = "M" + [srcStartX + band*(d.target.broID+1), d.source.y+hei/2].join(" ")
-                  + " L" + [srcStartX + band*(d.target.broID), d.source.y+hei/2].join(" ")
-                  + " L" + [d.target.x-tgtWid/2, d.target.y-hei/2].join(" ")
-                  + " L" + [d.target.x+tgtWid/2, d.target.y-hei/2].join(" ")+" Z";
-              return pathAttr;
-            });
-
-        // 绘制边的分割线
-        // if(d.target.broID === 0){
-        //   // 第一个孩子节点
-        //   d3.select(this).append("line")
-        //       .attr("stroke", "white")
-        //       .attr("stroke-width", "0.8")
-        //       .attr("x1", d => {
-        //         return d.source.x - (d.source.extension>1? 1:d.source.extension)*nodeWid/2;
-        //       })
-        //       .attr("y1", d =>{
-        //         return d.source.y+(nodeHei+gap*2)/2;
-        //       })
-        //       .attr("x2", d => {
-        //         return d.target.x-(d.target.extension>1? 1:d.target.extension)*nodeWid/2;
-        //       })
-        //       .attr("y2", d => {
-        //         return d.target.y-(nodeHei+gap*2)/2;
-        //       });
-        // }
-        // else if(d.target.broID === d.target.broNum-1){
-        //   // 最后一个孩子节点
-        //   d3.select(this).append("line")
-        //       .attr("stroke", "white")
-        //       .attr("stroke-width", "0.8")
-        //       .attr("x1", d => {
-        //         return d.source.x + (d.source.extension>1? 1:d.source.extension)*nodeWid/2;
-        //       })
-        //       .attr("y1", d =>{
-        //         return d.source.y+(nodeHei+gap*2)/2;
-        //       })
-        //       .attr("x2", d => {
-        //         return d.target.x+(d.target.extension>1? 1:d.target.extension)*nodeWid/2;
-        //       })
-        //       .attr("y2", d => {
-        //         return d.target.y-(nodeHei+gap*2)/2;
-        //       });
-        // }
-
-
+            .attr("d", d => d.getLinkPath());
       });
 
   // 绘制节点和分割线
@@ -141,7 +90,7 @@ function renderInit(){
             })
             .attr("stroke-opacity", "1")
             .attr("id", d => "node"+d.index)    // 为每个节点分配ID
-            .on("dblclick", function (){
+            .on("", function (){
               console.log("rect单击事件")
               /*
                * 当鼠标停留在某一个节点上的时候该节点就会被拉长
@@ -166,32 +115,15 @@ function renderInit(){
               // 重新绘制
               renderUpdate();
             })
-            .on("mouse", function (){
+            .on("dblclick", function (){
               /**
                * 展开子节点，成为一个矩形，周围的边绕开
                */
+              tree.status = 2;    // 显示矩形属性框
               showChildrenAttributes(d.index);
+              // 重新绘制
+              renderUpdate();
             });
-
-        // 绘制分割线
-        // if(d.layerID !== numOfEachLayer[d.depth]-1){
-        //   d3.select(this).append("line")
-        //       .attr("x1", d.x+nodeWid*d.extension/2)
-        //       .attr("y1", d.y-nodeHei/2)
-        //       .attr("x2", d.x+nodeWid*d.extension/2)
-        //       .attr("y2", d.y+nodeHei/2)
-        //       .attr("stroke", "orange")
-        //       .attr("stroke-width", "1")
-        //       .attr("stroke-dasharray", d => {
-        //         if(d.broID+1 !== d.broNum){
-        //           return "2, 2";
-        //         }
-        //         else{
-        //           return "none";
-        //         }
-        //       });
-        // }
-
       });
 }
 
@@ -209,7 +141,7 @@ function renderUpdate(){
 
   // 节点过渡
   nodesUpdate.transition()
-      .duration(500)
+      .duration(800)
       .attr("x", d => d.x - nodeWid/2*d.extension)
       .attr("y", d => d.y - nodeHei/2)
       .attr("width", d => nodeWid*d.extension)
@@ -217,68 +149,37 @@ function renderUpdate(){
         return 0.3/Math.sqrt(d.extension);   // 根据 extension = 1 时， opacity 为 0.3 计算
   });
 
-  // // 分隔线过渡
-  // separationUpdate.filter(d => {
-  //       return d.layerID !== numOfEachLayer[d.depth]-1;
-  //     })
-  //     .transition()
-  //     .duration(500)
-  //     .attr("x1", d => d.x+nodeWid*d.extension/2)
-  //     .attr("x2", d => d.x+nodeWid*d.extension/2);
-
   // 边过渡
   linksUpdate.transition()
-      .duration(500)
-      .attr("d", d => {
-        // 重新计算边
-        let srcWid = (d.source.extension>1? 1:d.source.extension)*nodeWid;   // 计算父节点的宽度
-        let srcStartX = d.source.x - srcWid/2;                                // 父节点的起始x坐标
-        let band = srcWid / d.target.broNum;            // 父节点每个brand的宽度
-        let tgtWid = (d.target.extension>1? 1:d.target.extension)*nodeWid;   // 计算孩子节点的宽度
-        let hei = nodeHei+gap*2;  // 增加节点的宽度,使节点与边之间留出空隙
-        let pathAttr = "M" + [srcStartX + band*(d.target.broID+1), d.source.y+hei/2].join(" ")
-            + " L" + [srcStartX + band*(d.target.broID), d.source.y+hei/2].join(" ")
-            + " L" + [d.target.x-tgtWid/2, d.target.y-hei/2].join(" ")
-            + " L" + [d.target.x+tgtWid/2, d.target.y-hei/2].join(" ")+" Z";
-        return pathAttr;
+      .duration(800)
+      .attr("d", d=>{
+        let path;
+        if (tree.status === 2 && d.target.status === 3){
+          d.target.y -= 100;
+          path = d.getLinkPath();
+          d.target.y += 100;
+        }
+        else{
+          path = d.getLinkPath();
+        }
+        return path;
       });
 
-  // 边分隔线过渡
-  // linksSeparationUpdate.transition()
-  //     .duration(500)
-  //     .attr("x1", d => {
-  //       if (d.target.broID === 0){
-  //         return d.source.x - (d.source.extension>1? 1:d.source.extension)*nodeWid/2;
-  //       }
-  //       else if(d.target.broID === d.target.broNum-1){
-  //         return d.source.x + (d.source.extension>1? 1:d.source.extension)*nodeWid/2;
-  //       }
-  //     })
-  //     .attr("y1", d =>{
-  //       if (d.target.broID === 0){
-  //         return d.source.y+(nodeHei+gap*2)/2;
-  //       }
-  //       else if(d.target.broID === d.target.broNum-1){
-  //         return d.source.y+(nodeHei+gap*2)/2;
-  //       }
-  //     })
-  //     .attr("x2", d => {
-  //       if (d.target.broID === 0){
-  //         return d.target.x-(d.target.extension>1? 1:d.target.extension)*nodeWid/2;
-  //       }
-  //       else if(d.target.broID === d.target.broNum-1){
-  //         return d.target.x+(d.target.extension>1? 1:d.target.extension)*nodeWid/2;
-  //       }
-  //     })
-  //     .attr("y2", d => {
-  //       if (d.target.broID === 0){
-  //         return d.target.y-(nodeHei+gap*2)/2;
-  //       }
-  //       else if(d.target.broID === d.target.broNum-1){
-  //         return d.target.y-(nodeHei+gap*2)/2;
-  //       }
-  //     });
-
+  // 显示矩形框 子节点的边上拉
+  if (tree.status === 2){
+    let attrRectUpdate = svg.append("rect")
+        .attr("x", attrRect[0])
+        .attr("y", attrRect[1] + attrRect[3])
+        .attr("width", attrRect[2])
+        .attr("height", 0)
+        .attr("stroke", "grey")
+        .attr("fill", "none")
+        .attr("stroke-width", "0.5");
+    attrRectUpdate.transition()
+        .duration(800)
+        .attr("y", attrRect[1])
+        .attr("height", attrRect[3]);
+  }
 }
 
 /***
@@ -349,6 +250,11 @@ function detailDisplayEnter(index){
   let focus = [index];
   let parents = tree.nodes[index].parent, children = tree.nodes[index].children;
 
+  // 改变节点的状态
+  for (let i = 0; i < children.length; i++){
+    tree.nodes[children[i]].status = 3;
+  }
+
   let parent = [];
   if (parents.length > 0){
     parent = [parents[0]];
@@ -405,12 +311,14 @@ function detailDisplayEnter(index){
  */
 function showChildrenAttributes(index){
   // 所显示矩形的左上角坐标x,y 以及长和宽;
-  let attrRect = [0, 0, 0, 100];
+  attrRect = [0, 0, 0, 100];
   let focusNode = tree.nodes[index];  // 当前节点
   let fNode = tree.nodes[focusNode.children[0]],
       lNode = tree.nodes[focusNode.children[focusNode.children.length-1]];    // 第一个和最后一个节点
+  let valueY = fNode.y - nodeHei/2 - 100;       // y = valueY 这条直线
+  let separation = fNode.y - focusNode.y - nodeHei;
   attrRect[0] = fNode.x - fNode.extension*nodeWid/2;
-  attrRect[1] = fNode.y - attrRect[3];
+  attrRect[1] = fNode.y - attrRect[3] - nodeHei/2;
   attrRect[2] = lNode.x + lNode.extension*nodeWid/2 - (fNode.x - fNode.extension*nodeWid/2);
 
   // 得到与index节点位于同一层的左右两边节点，并处理节点，使开头结尾节点是有孩子节点
@@ -426,37 +334,161 @@ function showChildrenAttributes(index){
   while(focusLeftNodes[0].children.length === 0){
     focusLeftNodes.shift();
   }
-  while(focusLeftNodes[focusLeftNodes.length-1].children === 0){
+  while(focusLeftNodes[focusLeftNodes.length-1].children.length === 0){
     focusLeftNodes.pop();
   }
   while(focusRightNodes[0].children.length === 0){
     focusRightNodes.shift();
   }
-  while(focusRightNodes[focusRightNodes.length-1].children === 0){
+  while(focusRightNodes[focusRightNodes.length-1].children.length === 0){
     focusRightNodes.pop();
   }
 
   // 计算该节点最右or最左的边，进一步计算出需要预留的空间
+
+
   // 计算出最右的边 与 矩形左上角的交点
+  let insectLeftX = getInsectX(focusLeftNodes[focusLeftNodes.length-1],
+      tree.nodes[focusLeftNodes[focusLeftNodes.length-1].children[focusLeftNodes[focusLeftNodes.length-1].children.length-1]], 0, valueY);
 
+  let reserveRoom = insectLeftX - (attrRect[0]-familyGap*nodeWid);
+  if (reserveRoom > 0){
+    // 需要预留出空间
+    // 再次遍历左右节点的每一个空隙，看是否满足所需要的预留的空间，并标记每个边需要平移的大小
+    let accRoom = 0;
+    let lastNode;    // 标记上一个具有孩子节点的节点
+    let shiftNodes = [];        // 需要进行变形的边的父亲节点
+    let shiftDistance = [];     // 每个边需要平移的位移大小
+    for (let i = focusLeftNodes.length - 1; i >= 0; i--){
+      if (focusLeftNodes[i].children.length === 0){
+      }
+      else{
+        // 非叶子节点
+        if (lastNode && (lastNode.index + -1) !== focusLeftNodes[i].index){
+          // 如果是非叶子节点 并且这两个节点不相邻，那么说明两个节点之间有叶子节点，计算预留空间
+          let room = ((lastNode.x - lastNode.extension*nodeWid/2)
+              -(focusLeftNodes[i].x + focusLeftNodes[i].extension*nodeWid/2)-familyGap*nodeWid)*(100/separation);
+          if (accRoom+room>reserveRoom){
+            // 预留的空间已经够用了
+            // 为已经遍历过的实节点的的位移加满
+            for (let j = 0; j < shiftDistance.length; j++){
+              shiftDistance[j] += (accRoom+room-reserveRoom);
+            }
+            // 跳出循环
+            break;
+          }
+          else{
+            // 预留的空间不够用
+            accRoom += room;
+            // 为已经遍历过的实节点的的位移加上room
+            for (let j = 0; j < shiftDistance.length; j++){
+              shiftDistance[j] += room;
+            }
+          }
+        }
+        lastNode = focusLeftNodes[i];
+        shiftNodes.push(lastNode);
+        shiftDistance.push(0);
+      }
+    }
+    // 如果所有的可用空隙都填满了，那就继续外移
+    if (accRoom < reserveRoom){
+      for (let j = 0; j < shiftDistance.length; j++){
+        shiftDistance[j] += (reserveRoom-accRoom);
+      }
+    }
 
+    // 为每个边加上两个额外的点
+    for (let i = 0; i < shiftNodes.length; i++){
+      let curNode = shiftNodes[i];
+      for (let j = 0; j < curNode.children.length; j++){
+        // 对于每一条边，计算左右两个点
+        let left = getInsectX(curNode, tree.nodes[curNode.children[j]], 0, valueY);
+        let right = getInsectX(curNode, tree.nodes[curNode.children[j]], 1, valueY);
+        // 根据节点把边对应起来
+        tree.links[curNode.children[j] -1].plot = [[left-shiftDistance[i], valueY], [right - shiftDistance[i], valueY]];
+      }
+    }
+  }
+  else{
+    // 目前的空间足够矩形展示 则不变
+  }
 
+  // 计算出最左的边 与 矩形左上角的交点
+  let insectRightX = getInsectX(focusRightNodes[0],
+      tree.nodes[focusRightNodes[0].children[0]], 0, valueY);
 
+  reserveRoom = (attrRect[0] + attrRect[2] + familyGap*nodeWid) - insectRightX;
+  if (reserveRoom > 0){
+    // 需要预留出空间
+    // 再次遍历左右节点的每一个空隙，看是否满足所需要的预留的空间，并标记每个边需要平移的大小
+    let accRoom = 0;
+    let lastNode;    // 标记上一个具有孩子节点的节点
+    let shiftNodes = [];        // 需要进行变形的边的父亲节点
+    let shiftDistance = [];     // 每个边需要平移的位移大小
+    for (let i = 0; i < focusRightNodes.length; i++){
+      if (focusRightNodes[i].children.length === 0){
+      }
+      else{
+        // 非叶子节点
+        if (lastNode && (lastNode.index + 1) !== focusRightNodes[i].index){
+          // 如果是非叶子节点 并且这两个节点不相邻，那么说明两个节点之间有叶子节点，计算预留空间
+          let room = (-(lastNode.x + lastNode.extension*nodeWid/2)
+              +(focusRightNodes[i].x - focusRightNodes[i].extension*nodeWid/2)-familyGap*nodeWid)*(100/separation);
+          if (accRoom+room>reserveRoom){
+            // 预留的空间已经够用了
+            // 为已经遍历过的实节点的的位移加满
+            for (let j = 0; j < shiftDistance.length; j++){
+              shiftDistance[j] += (accRoom+room-reserveRoom);
+            }
+            // 跳出循环
+            break;
+          }
+          else{
+            // 预留的空间不够用
+            accRoom += room;
+            // 为已经遍历过的实节点的的位移加上room
+            for (let j = 0; j < shiftDistance.length; j++){
+              shiftDistance[j] += room;
+            }
+          }
+        }
+        lastNode = focusRightNodes[i];
+        shiftNodes.push(lastNode);
+        shiftDistance.push(0);
+      }
+    }
+    // 如果所有的可用空隙都填满了，那就继续外移
+    if (accRoom < reserveRoom){
+      for (let j = 0; j < shiftDistance.length; j++){
+        shiftDistance[j] += (reserveRoom-accRoom);
+      }
+    }
 
+    // 为每个边加上两个额外的点
+    for (let i = 0; i < shiftNodes.length; i++){
+      let curNode = shiftNodes[i];
+      for (let j = 0; j < curNode.children.length; j++){
+        // 对于每一条边，计算左右两个点
+        let left = getInsectX(curNode, tree.nodes[curNode.children[j]], 0, valueY);
+        let right = getInsectX(curNode, tree.nodes[curNode.children[j]], 1, valueY);
+        // 根据节点把边对应起来
+        tree.links[curNode.children[j] -1].plot = [[left+shiftDistance[i], valueY], [right + shiftDistance[i], valueY]];
+      }
+    }
 
-
-
-  // 再次遍历左右节点的每一个空隙，看是否满足所需要的预留的空间，并标记每个节点需要平移的大小
-
-  // 输入两个点 和Y值，返回两点间的线段与 y 相交的 x 值 d 代表是节点的最右的边还是最左的边
+  }
+  else{
+    // 目前的空间足够矩形展示 则不变
+  }
 
 }
 
 /**
  * 得到两个直线与 Y = y 这条直线的交点的x值
- * @param p1
+ * @param parent
  * 父亲节点
- * @param p2
+ * @param child
  * p2是p1的一个孩子节点，也只有这种情况，该函数成立
  * @param d
  * 我们所求的边，这两个节点有左右两条边，d为0求左边的边，d为1求右边的边
@@ -464,8 +496,20 @@ function showChildrenAttributes(index){
  * @returns {*}
  * 返回x值
  */
-function getInsectX(p1, p2, d, y){
-  return (p2[0]-p1[0])/(p2[1]-p1[1])*(p1[1]-y)+p1[0];
+function getInsectX(parent, child, d, y){
+  let p1, p2;   // p1孩子节点坐标， p2父亲节点坐标
+  let band = parent.extension*nodeWid/child.broNum;
+
+  if (d === 0){
+    p1 = [child.x - child.extension*nodeWid/2, child.y - nodeHei/2];
+    p2 = [parent.x - parent.extension*nodeWid/2+band*child.broID, parent.y + nodeHei/2];
+  }
+  else if (d === 1){
+    p1 = [child.x + child.extension*nodeWid/2, child.y - nodeHei/2]
+    p2 = [parent.x - parent.extension*nodeWid/2+band*(child.broID+1), parent.y + nodeHei/2];
+  }
+
+  return (p2[0]-p1[0])/(p1[1]-p2[1])*(p1[1]-y)+p1[0];
 }
 
 /**
@@ -553,7 +597,7 @@ d3.csv("./data/301_Friedrich-Wieck_200.csv").then(function (data){
    */
 
   // svg添加双击compress树事件
-  svg.on("dblclick", function (){
+  svg.on("", function (){
     console.log("svg单击事件");
     if(!tree.isFold){
       compressTreeEnter();

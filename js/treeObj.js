@@ -9,6 +9,8 @@
  *    -边 -links
  *    -节点和边的映射方式 {"parentIndex": edgeIndex, ,,,,,}
  *    -每个节点的最大压缩程度 miniExtent
+ *    -状态
+ *      -0 普通 -2 显示子节点的属性矩形
  *
  *  -方法
  *    -对外接口
@@ -36,6 +38,7 @@ function Tree(root){
   this.nodeLinkMap = getNodeLinkMap(this.links);        // 父节点和边的映射
   this.miniExtent = 0.5;      //每个节点的最大压缩程度
   this.isFold = false;      // 标志当前整棵树是折叠状态还是展开状态
+  this.status = 0;        // 默认状态是0
 
   /**
    * 返回每一层中的节点ID
@@ -76,14 +79,14 @@ function Tree(root){
 
   /***
    * 返回边对象列表
+   *  -边的排列顺序和节点的排列顺序 平移一个
+   *  -根节点没有父母，因此就没对应的边
    * @param nodes
    */
   function getAllLinkObj(nodes){
     let result = [];
-    for(let i = 0; i < nodes.length; i++){
-      for (let j = 0; j < nodes[i].children.length; j++){
-        result.push(new Link(nodes[i], nodes[nodes[i].children[j]]));
-      }
+    for(let i = 1; i < nodes.length; i++){
+      result.push(new Link(nodes[nodes[i].parent[0]], nodes[i]));
     }
     return result;
   }
