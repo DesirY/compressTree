@@ -5,14 +5,14 @@
 
 const svg = d3.select("svg");
 const width = 1200, height = 800;   //svg的长和宽
-const padding = {top: 30, bottom: 30};    //为防止树溢出上下边界，设置padding
-const nodeWid = 10, nodeHei = 20;   //svg中节点的宽和高
+const padding = {top: 80, bottom: 80};    //为防止树溢出上下边界，设置padding
+const nodeWid = 9.888, nodeHei = 16;   //svg中节点的宽和高
 
 let tree;   // 树对象
 let layers;   //绘制该树的层数
 let separation;   //svg中层与层之前的高度
 let numOfEachLayer = [];  //每层的节点个数
-const gap = 1;     // 节点和边之间的间隔大小
+const gap = 2.3;     // 节点和边之间的间隔大小
 const familyGap = 0.5;    // 不同父母的节点之间的gap，gap*节点宽度为实际的间隔
 let attrRect;     // 显示属性的矩形框
 
@@ -51,7 +51,12 @@ function renderInit(){
         d3.select(this).append("path")
             .attr("stroke", "none")
             .attr("stroke-width", "0")
-            .attr("fill", "url(#grad)")
+            //.attr("fill", "url(#grad)")
+            .attr("fill", "#F1F1F1")
+            .attr("fill", "#E8E9EE")
+            //.attr("fill", "#EFEEED")
+            // .attr("fill", "#999")
+            .attr("fill-opacity", "0.7")
             .attr("d", d => d.getLinkPath());
       });
 
@@ -74,12 +79,13 @@ function renderInit(){
                 return "white";
               }
               else{
-                return "#ced4da";
+                return "#5F89A5";
+                return "#8fb2c9";
               }
             })
-            .attr("fill-opacity", "0.3")
-            .attr("stroke", "black")
-            .attr("stroke-width", "0.7")
+            .attr("fill-opacity", "1")
+            .attr("stroke", "#E8E9EE")
+            .attr("stroke-width", "0.3")
             .attr("stroke-dasharray", d => {
               if (d.virtualStatus === 2){
                 return "2,2";
@@ -144,10 +150,10 @@ function renderUpdate(){
       .duration(800)
       .attr("x", d => d.x - nodeWid/2*d.extension)
       .attr("y", d => d.y - nodeHei/2)
-      .attr("width", d => nodeWid*d.extension)
-      .attr("fill-opacity", function (d){
-        return 0.3/Math.sqrt(d.extension);   // 根据 extension = 1 时， opacity 为 0.3 计算
-  });
+      .attr("width", d => nodeWid*d.extension);
+  //     .attr("fill-opacity", function (d){
+  //       return 0.3/Math.sqrt(d.extension);   // 根据 extension = 1 时， opacity 为 0.3 计算
+  // });
 
   // 边过渡
   linksUpdate.transition()
