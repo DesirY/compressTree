@@ -14,9 +14,9 @@
  *  -父亲节点的index  -parent 返回值是list
  *  -孩子节点的index  -children 返回类型是list
  *  -节点当前的拉伸程度（1代表原始长度，<1代表压缩，>1代表拉伸）
- *  -虚拟节点的状态  virtualStatus -0/1/2 正常/虚拟/虚拟节点对应的实际节点
+ *  -虚拟节点的状态  virtualStatus - 0/1/2 正常/虚拟/虚拟节点对应的实际节点
  *  -counterpart 虚拟节点或者虚拟节点对应的实际节点 的对应index
- *  -status 当前节点的状态  -0 普通节点 -3 子节点
+ *  -status 当前节点的状态  -0 普通节点 -1 当前focus的节点 -2 focus的子节点 -3 focus的父亲节点
  *
  * -方法
  *
@@ -40,7 +40,7 @@ function Node(node){
   this.parent = getParentIDList(node);
   this.children = getChildrenIDList(node);
   this.extension = 1;
-  this.focus = true;
+  this.focus = false;
   this.status = 0;
 
   /**

@@ -25,10 +25,9 @@ function preprocessing(root){
 
   traverse(root);
 
-
   //为每一个节点标记索引 和 虚拟状态
-  let realVirtualMap = {"56387R": ["56387V"]};    // 该变量在后期作为参数传进来
-  realVirtualMap = {};    // 这个要针对不同的数据单独设置
+  let realVirtualMap = {"89133R": ["89133V"], "54771R":["54771V"]};    // 该变量在后期作为参数传进来
+  // realVirtualMap = {};    // 这个要针对不同的数据单独设置
   let nodeIndexMap = {};      // 节点和index的字典映射
   /**
    * virtualStatus : 0-普通节点 1-虚拟节点 2-虚拟节点对应的实际节点

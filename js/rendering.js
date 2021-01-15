@@ -5,8 +5,8 @@
 
 const svg = d3.select("svg");
 const width = 1200, height = 800;   //svg的长和宽
-const padding = {top: 80, bottom: 80};    //为防止树溢出上下边界，设置padding
-const nodeWid = 9.888, nodeHei = 16;   //svg中节点的宽和高
+const padding = {top: 70, bottom: 70};    //为防止树溢出上下边界，设置padding
+const nodeWid = 11.024, nodeHei = 18;   //svg中节点的宽和高
 
 let tree;   // 树对象
 let layers;   //绘制该树的层数
@@ -15,6 +15,7 @@ let numOfEachLayer = [];  //每层的节点个数
 const gap = 2.3;     // 节点和边之间的间隔大小
 const familyGap = 0.5;    // 不同父母的节点之间的gap，gap*节点宽度为实际的间隔
 let attrRect;     // 显示属性的矩形框
+let valueY;       // Y = valueY 这条直线 也是之后的边的Y值
 
 let Gradient;   // 颜色渐变器
 let links;     // 边元素
@@ -54,13 +55,13 @@ function renderInit(){
             //.attr("fill", "url(#grad)")
             .attr("fill", "#F1F1F1")
             .attr("fill", "#E8E9EE")
-            //.attr("fill", "#EFEEED")
+            .attr("fill", "#EFEEED")
             // .attr("fill", "#999")
-            .attr("fill-opacity", "0.7")
+            .attr("fill-opacity", "1")
             .attr("d", d => d.getLinkPath());
       });
 
-  // 绘制节点和分割线
+  // 绘制节点
   nodes = svg.selectAll(".nodes").data(tree.nodes).enter().append("g")
       .classed("nodeG", "true")
       .each(function (d, i){
@@ -74,26 +75,10 @@ function renderInit(){
             .attr("y", d.y-nodeHei/2)
             .attr("width", nodeWid*d.extension)
             .attr("height", nodeHei)
-            .attr("fill", d =>{
-              if (d.virtualStatus === 1){
-                return "white";
-              }
-              else{
-                return "#5F89A5";
-                return "#8fb2c9";
-              }
-            })
+            .attr("fill", "#5F89A5")
             .attr("fill-opacity", "1")
             .attr("stroke", "#E8E9EE")
             .attr("stroke-width", "0.3")
-            .attr("stroke-dasharray", d => {
-              if (d.virtualStatus === 2){
-                return "2,2";
-              }
-              else{
-                return null;
-              }
-            })
             .attr("stroke-opacity", "1")
             .attr("id", d => "node"+d.index)    // 为每个节点分配ID
             .on("", function (){
@@ -112,25 +97,62 @@ function renderInit(){
               /**
                * 双击节点显示出节点的父亲和孩子
                */
-              console.log("双击事件@");
-              tree.recover();
-              // 展开三代
-              detailDisplayEnter(d.index);
-              // 鱼眼变换
-              tree.fishEye(d.index, 1);
-              // 重新绘制
-              renderUpdate();
+              if (tree.status === 0){
+                // 默认状态下点击节点，更改节点的状态和树的状态
+                updateNodesStatus(d);
+                tree.status = 1;
+                renderUpdate();
+              }
+              else if (tree.status === 1){
+                console.log("双击事件@");
+                tree.recover();
+                // 展开三代
+                detailDisplayEnter(d.index);
+                // 鱼眼变换
+                tree.fishEye(d.index, 1);
+                tree.status = 2;
+                // 重新绘制
+                renderUpdate();
+              }
+              else if (tree.status === 2){
+                /**
+                 * 展开子节点，成为一个矩形，周围的边绕开
+                 */
+                tree.status = 3;    // 显示矩形属性框
+                showChildrenAttributes(d.index);
+                // 重新绘制
+                renderUpdate();
+              }
             })
-            .on("dblclick", function (){
-              /**
-               * 展开子节点，成为一个矩形，周围的边绕开
-               */
-              tree.status = 2;    // 显示矩形属性框
-              showChildrenAttributes(d.index);
-              // 重新绘制
-              renderUpdate();
+            .on("mouseover",function (){
+              console.log("鼠标放在了上面");
+              // 鼠标放到label上时，边框加粗，改颜色，在下方显示label
+              revealLabel(d.index);
+            })
+            .on("mouseout", function (){
+              // 鼠标移出到label时，边框复原，恢复颜色，label消失
+              removeLabel(d.index);
             });
       });
+
+  // 绘制虚实节点的边框
+  let VRBorders = svg.selectAll(".VRBorders").data(tree.VRNodes).enter().append("rect")
+      .classed("VRBorders", true)
+      .attr("x", d => d.x - nodeWid/2)
+      .attr("y", d => d.y - nodeHei/2)
+      .attr("width", nodeWid)
+      .attr("height", nodeHei)
+      .attr("fill", "none")
+      .attr("stroke", "#353635")
+      .attr("stroke-dasharray", d => {
+        if (d.virtualStatus === 1){
+          return "3,1.5";
+        }
+        else{
+          return null;
+        }
+      })
+      .attr("stroke-width", 2);
 }
 
 /**
@@ -141,13 +163,21 @@ function renderInit(){
  */
 function renderUpdate(){
   let nodesUpdate = d3.selectAll(".nodeG").selectAll("rect");
-  let separationUpdate = d3.selectAll(".nodeG").selectAll("line");
   let linksUpdate = d3.selectAll(".linkG").selectAll("path");
+  let VRNodesUpdate = d3.selectAll(".VRBorders");
   // let linksSeparationUpdate = d3.selectAll(".linkG").selectAll("line");
 
   // 节点过渡
   nodesUpdate.transition()
       .duration(800)
+      .attr("fill", d => {
+        if (d.status === 0){
+          return "#5F89A5";
+        }
+        else{
+          return "orange";
+        }
+      })
       .attr("x", d => d.x - nodeWid/2*d.extension)
       .attr("y", d => d.y - nodeHei/2)
       .attr("width", d => nodeWid*d.extension);
@@ -158,12 +188,29 @@ function renderUpdate(){
   // 边过渡
   linksUpdate.transition()
       .duration(800)
+      .attr("fill-opacity", d=>{
+        if (d.target.status === 1 || d.target.status === 2){
+          return "0.3";
+        }
+        else {
+          return "1";
+        }
+      })
+      .attr("fill", d=>{
+        if (d.target.status === 1 || d.target.status === 2){
+          return "orange";
+        }
+        else{
+          return "#EFEEED";
+        }
+      })
       .attr("d", d=>{
         let path;
-        if (tree.status === 2 && d.target.status === 3){
-          d.target.y -= 100;
+        if (tree.status === 3 && d.target.status === 2){
+          let temp = d.target.y;
+          d.target.y = valueY + nodeHei/2;
           path = d.getLinkPath();
-          d.target.y += 100;
+          d.target.y = temp;
         }
         else{
           path = d.getLinkPath();
@@ -171,19 +218,26 @@ function renderUpdate(){
         return path;
       });
 
+  //虚拟现实边框过渡
+  VRNodesUpdate.transition().duration(800)
+      .attr("x", d => d.x - nodeWid/2*d.extension)
+      .attr("y", d => d.y - nodeHei/2)
+      .attr("width", d => nodeWid*d.extension);
+
+
   // 显示矩形框 子节点的边上拉
-  if (tree.status === 2){
+  if (tree.status === 3){
     let attrRectUpdate = svg.append("rect")
         .attr("x", attrRect[0])
         .attr("y", attrRect[1] + attrRect[3])
         .attr("width", attrRect[2])
         .attr("height", 0)
-        .attr("stroke", "grey")
-        .attr("fill", "none")
-        .attr("stroke-width", "0.5");
-    attrRectUpdate.transition()
-        .duration(800)
+        .attr("stroke", "none")
+        .attr("fill", "#EFEEED")
+        .attr("opacity", "0")
+        .transition().duration(800)
         .attr("y", attrRect[1])
+        .attr("opacity", 0.3)
         .attr("height", attrRect[3]);
   }
 }
@@ -201,7 +255,7 @@ function textUpdate(index, update){
     // 删除该文本
     svg.select("#text"+index)
         .transition()
-        .duration(500)
+        .duration(200)
         .attr("opacity", "0")
         .remove();
   }
@@ -220,10 +274,24 @@ function textUpdate(index, update){
             focusNodeEnter(index, 1);
         })
         .transition()
-        .duration(500)
+        .duration(200)
         .attr("opacity", "1");
   }
 
+}
+
+/**
+ * 更改当前节点，以及其父亲孩子节点的状态
+ * @param node
+ */
+function updateNodesStatus(node){
+  node.status = 1;
+  for (let i = 0; i < node.children.length; i++){
+    tree.nodes[node.children[i]].status = 2;
+  }
+  for (let i = 0; i < node.parent.length; i++){
+    tree.nodes[node.parent[i]].status = 3;
+  }
 }
 
 
@@ -246,6 +314,103 @@ function focusNodeEnter(index, extent){
   }
 }
 
+/**
+ * 鼠标悬浮在一个普通状态下的节点时，该节点的边框加粗且改变颜色，该节点的下面显示出节点的名字
+ *  -如果这个方法是循环第二次调用的，不再继续循环
+ * @param index
+ */
+function revealLabel(index, iterate = false){
+  let curNode = tree.nodes[index];
+  let fontSize = 12;
+  // 看该节点是否存在
+  let nodeSvg = d3.select("#nodeBorder"+index)
+  // 选中该节点 改边框和颜色
+  if(nodeSvg.empty()){
+    nodeSvg = svg.append("rect");
+  }
+  nodeSvg
+      .attr("x", curNode.x - nodeWid*curNode.extension/2)
+      .attr("y", curNode.y - nodeHei/2)
+      .attr("width", nodeWid*curNode.extension)
+      .attr("height", nodeHei)
+      .attr("stroke", function (){
+        if (curNode.virtualStatus === 0){
+          return "#353635"
+        }
+        else{
+          return "orange";
+        }
+      })
+      .attr("fill", "none")
+      .attr("stroke-width", 2.2)
+      .attr("stroke-dasharray", function (){
+        if (curNode.virtualStatus === 1){
+          return "3,1.5";
+        }
+        else{
+          return null;
+        }
+      })
+      .attr("id", "nodeBorder"+index)
+      .attr("opacity", 0).transition().duration(200)
+      .attr("opacity", 1);
+
+  // 在该节点的下方，显示出label
+  // 看label是否存在
+  let labelSvg = d3.select("#nodeText"+index);
+  if (labelSvg.empty()){
+    labelSvg = svg.append("text");
+  }
+  labelSvg
+      .attr("x", curNode.x )
+      .attr("y", curNode.y + nodeHei/2+fontSize+3)
+      .attr("text-anchor", "middle")
+      .attr("fill", function (){
+        if (curNode.virtualStatus === 0){
+          return "#353635";
+        }
+        else{
+          return "orange";
+        }
+      })
+      .attr("font-family", "helvetica")
+      .attr("font-size", fontSize+"px")
+      .attr("opacity", 0)
+      .attr("id", "nodeText"+index)
+      .text("Tom")
+      .transition().duration(200)
+      .attr("opacity", 1);
+
+  // 如果是虚拟节点，对应的节点也应该显示出来
+  if (curNode.virtualStatus !== 0 && !iterate){
+    for (let i = 0; i < curNode.counterpart.length; i++){
+      revealLabel(curNode.counterpart[i], true);
+    }
+  }
+}
+
+/**
+ * 鼠标离开在一个显示了label的节点时，边框和label淡出并删除
+ * @param index
+ */
+function removeLabel(index, iterate = false){
+  let curNode = tree.nodes[index];
+  d3.select("#nodeBorder"+index).transition().duration(100)
+      .attr("opacity", "0")
+      .remove();
+  d3.select("#nodeText"+index).transition().duration(100)
+      .attr("opacity", "0")
+      .remove();
+
+  // 如果是虚拟节点，对应的节点也应该显示出来
+  if (curNode.virtualStatus !== 0 && !iterate){
+    for (let i = 0; i < curNode.counterpart.length; i++){
+      removeLabel(curNode.counterpart[i], true);
+    }
+  }
+}
+
+
 /***
  * 展开当前节点, 及其父亲，孩子
  * @param index
@@ -256,10 +421,6 @@ function detailDisplayEnter(index){
   let focus = [index];
   let parents = tree.nodes[index].parent, children = tree.nodes[index].children;
 
-  // 改变节点的状态
-  for (let i = 0; i < children.length; i++){
-    tree.nodes[children[i]].status = 3;
-  }
 
   let parent = [];
   if (parents.length > 0){
@@ -317,11 +478,11 @@ function detailDisplayEnter(index){
  */
 function showChildrenAttributes(index){
   // 所显示矩形的左上角坐标x,y 以及长和宽;
-  attrRect = [0, 0, 0, 100];
+  attrRect = [0, 0, 0, 80];
   let focusNode = tree.nodes[index];  // 当前节点
   let fNode = tree.nodes[focusNode.children[0]],
       lNode = tree.nodes[focusNode.children[focusNode.children.length-1]];    // 第一个和最后一个节点
-  let valueY = fNode.y - nodeHei/2 - 100;       // y = valueY 这条直线
+  valueY = fNode.y - nodeHei/2 - attrRect[3] - gap;       // y = valueY 这条直线
   let separation = fNode.y - focusNode.y - nodeHei;
   attrRect[0] = fNode.x - fNode.extension*nodeWid/2;
   attrRect[1] = fNode.y - attrRect[3] - nodeHei/2;
@@ -572,7 +733,7 @@ function reConstructCoordi(tree){
 
 
 //读取文件
-d3.csv("./data/301_Friedrich-Wieck_200.csv").then(function (data){
+d3.csv("./data/reConstructData/301_Friedrich-Wieck_200.csv").then(function (data){
   // 得到d3中tree的格式
   let treeTemp = d3.stratify().id(d=>d.name).parentId(d=>d.parent)(data);
   let rootTemp = d3.tree()(treeTemp);

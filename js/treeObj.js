@@ -11,6 +11,7 @@
  *    -每个节点的最大压缩程度 miniExtent
  *    -状态
  *      -0 普通 -2 显示子节点的属性矩形
+ *    -虚实节点集合
  *
  *  -方法
  *    -对外接口
@@ -22,7 +23,7 @@
  *      -返回以某个节点为子节点的边
  *      -focus某个点时，修改每个节点的extent   focusNode
  *      -重新计算某一层节点的位置  -reComputeLayerCoordinate
- *      -当前树的状态  折叠/展开
+ *      -当前树的状态   -0：默认状态 1：点击了一下确定了focus节点及其邻接节点高亮 2：展开邻居节点 3：显示属性框
  *    -私有方法
  * @param root
  * @constructor
@@ -39,6 +40,17 @@ function Tree(root){
   this.miniExtent = 0.5;      //每个节点的最大压缩程度
   this.isFold = false;      // 标志当前整棵树是折叠状态还是展开状态
   this.status = 0;        // 默认状态是0
+  this.VRNodes = getVRNodes(this.nodes);    // 所有的虚实节点
+
+  function getVRNodes(nodes){
+    let res = [];
+    for (let i = 0; i < nodes.length; i++){
+      if (nodes[i].virtualStatus !==0){
+        res.push(nodes[i]);
+      }
+    }
+    return res;
+  }
 
   /**
    * 返回每一层中的节点ID
