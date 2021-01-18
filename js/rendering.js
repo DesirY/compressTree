@@ -56,9 +56,16 @@ function renderInit(){
             .attr("fill", "#F1F1F1")
             .attr("fill", "#E8E9EE")
             .attr("fill", "#EFEEED")
+            .attr("id", "line"+d.target.index)
             // .attr("fill", "#999")
             .attr("fill-opacity", "1")
-            .attr("d", d => d.getLinkPath());
+            .attr("d", d => d.getLinkPath())
+            .on("mouseover", function (){
+              highlightLine(d, true);
+            })
+            .on("mouseout", function (){
+              highlightLine(d, false);
+            });
       });
 
   // 绘制节点
@@ -99,32 +106,50 @@ function renderInit(){
                */
               // 点击事件发生后，先把节点边框取消
               removeLabel(d.index);
-              if (tree.status === 0){
-                // 默认状态下点击节点，更改节点的状态和树的状态
-                updateNodesStatus(d);
-                tree.status = 1;
-                renderUpdate();
+              // 如果focus点不存在或者此次点击的点与focus一致，则继续 反之替换focus节点
+              if (!tree.focus || tree.focus.index === d.index){
+                if (!tree.focus){
+                  tree.focus = d;
+                }
+                if (tree.status === 0){
+                  // 默认状态下点击节点，更改节点的状态和树的状态
+                  updateNodesStatus(d);
+                  tree.status = 1;
+                  renderUpdate();
+                }
+                else if (tree.status === 1){
+                  // 展开三代
+                  detailDisplayEnter(d.index);
+                  // 鱼眼变换
+                  tree.fishEye(d.index, 1);
+                  tree.status = 2;
+                  // 更改节点的extension值
+                  d.extension = 2;
+                  for (let i = 0; i < d.parent.length; i++){
+                    tree.nodes[d.parent[i]].extension = 2;
+                  }
+                  for (let i = 0; i < d.children.length; i++){
+                    tree.nodes[d.children[i]].extension = 2;
+                  }
+                  // 重新绘制
+                  renderUpdate();
+                }
+                else if (tree.status === 2){
+                  /**
+                   * 展开子节点，成为一个矩形，周围的边绕开
+                   */
+                  tree.status = 3;    // 显示矩形属性框
+                  showChildrenAttributes(d.index);
+                  // 重新绘制
+                  renderUpdate();
+                }
               }
-              else if (tree.status === 1){
-                console.log("双击事件@");
-                tree.recover();
-                // 展开三代
-                detailDisplayEnter(d.index);
-                // 鱼眼变换
-                tree.fishEye(d.index, 1);
-                tree.status = 2;
-                // 重新绘制
-                renderUpdate();
+              else {
+                // focus节点替换
+                tree.focus = d;
+                renderFocusChangeUpdate(d);
               }
-              else if (tree.status === 2){
-                /**
-                 * 展开子节点，成为一个矩形，周围的边绕开
-                 */
-                tree.status = 3;    // 显示矩形属性框
-                showChildrenAttributes(d.index);
-                // 重新绘制
-                renderUpdate();
-              }
+
             })
             .on("mouseover",function (){
               console.log("鼠标放在了上面");
@@ -176,16 +201,33 @@ function renderUpdate(){
         if (d.status === 0){
           return "#5F89A5";
         }
-        else{
-          return "orange";
+        else {
+          if (tree.status === 2 || tree.status === 3){
+            // 此时就要使用label代替节点了
+            return "#EFEEED";
+          }
+          else{
+            return "orange";
+          }
         }
       })
       .attr("x", d => d.x - nodeWid/2*d.extension)
       .attr("y", d => d.y - nodeHei/2)
-      .attr("width", d => nodeWid*d.extension);
-  //     .attr("fill-opacity", function (d){
-  //       return 0.3/Math.sqrt(d.extension);   // 根据 extension = 1 时， opacity 为 0.3 计算
-  // });
+      .attr("width", d => nodeWid*d.extension)
+      .attr("fill-opacity", function (d){
+        if (d.status === 0){
+          return 1;
+        }
+        else {
+          if (tree.status === 2 || tree.status === 3){
+            // 此时就要使用label代替节点了
+            return "0.3";
+          }
+          else{
+            return "1";
+          }
+        }
+  });
 
   // 边过渡
   linksUpdate.transition()
@@ -228,7 +270,10 @@ function renderUpdate(){
 
   // 显示矩形框 子节点的边上拉
   if (tree.status === 3){
-    let attrRectUpdate = svg.append("rect")
+    // 用来显示属性信息的面板，
+    let attrG = svg.append("g")
+        .attr("id", "attrG");
+    let attrRectUpdate = attrG.append("rect")
         .attr("x", attrRect[0])
         .attr("y", attrRect[1] + attrRect[3])
         .attr("width", attrRect[2])
@@ -236,10 +281,160 @@ function renderUpdate(){
         .attr("stroke", "none")
         .attr("fill", "#EFEEED")
         .attr("opacity", "0")
+        .attr("id", "attrRect")
         .transition().duration(800)
         .attr("y", attrRect[1])
         .attr("opacity", 0.3)
         .attr("height", attrRect[3]);
+
+    // 绘制柱状图以及文本
+    // 根据节点的数量随机生成数量文本
+    let numText = [];
+    for (let i = 0 ; i < tree.focus.children.length; i++){
+      numText.push(parseInt(Math.random()*20)+30);
+    }
+    // 生成Y方向上的比例尺
+    let scaleY = d3.scaleLinear().domain([15, 55]).range([0, attrRect[3]]);
+    // 绘制矩形
+    attrG.selectAll(".bar").data(tree.focus.children).enter().append("rect")
+        .attr("x", (d, i)=> tree.nodes[d].x - nodeWid*0.6)
+        .attr("y", attrRect[1]+attrRect[3])
+        .attr("width", nodeWid*1.2)
+        .attr("height", 0)
+        .attr("fill", "#5F89A5")
+        .attr("opacity", 1)
+        .classed("bar", true)
+        .transition()
+        .delay(800)
+        .duration(500)
+        .attr("y", (d, i)=>attrRect[1]+attrRect[3]-scaleY(numText[i]))
+        .attr("height", (d, i)=>scaleY(numText[i]));
+
+    // 绘制文本
+    attrG.selectAll("barText").data(tree.focus.children).enter().append("text")
+        .attr("x", d => tree.nodes[d].x)
+        .attr("y", (d, i)=>attrRect[1]+attrRect[3]-scaleY(numText[i]))
+        .attr("dy", "-2")
+        .attr("text-anchor", "middle")
+        .text((d, i)=>numText[i])
+        .attr("font-family", "helvetica")
+        .attr("font-size", "12px")
+        .attr("opacity", "0")
+        .attr("fill", "#353635")
+        .classed("bar", true)
+        .transition()
+        .delay(1200)
+        .duration(500)
+        .attr("opacity", "1");
+  }
+}
+
+/**
+ * 改变关注节点之后的动画
+ * @param node
+ * 新focus点
+ */
+function renderFocusChangeUpdate(node){
+  // 如果树处于显示属性状态,第一步将柱状图和文本消失
+  if (tree.status === 3){
+    tree.status = 2;    // 修改状态
+    d3.select("#attrG").selectAll(".bar")
+        .transition()
+        .duration(500)
+        .attr("opacity", "0")
+        .remove()
+        .end()
+        .then(()=>{
+          // 第二步文本框消失，短线恢复原长，折线恢复原始状态
+          d3.select("#attrRect").transition().duration(500)
+              .attr("y", attrRect[1]+attrRect[3])
+              .attr("height", 0)
+              .remove()
+              .end().then(function (){
+                d3.select("#attrG").remove();
+          });
+          d3.selectAll(".linkG").selectAll("path").transition()
+              .duration(500)
+              .attr("fill-opacity", d=>{
+                if (d.target.status === 1 || d.target.status === 2){
+                  return "0.3";
+                }
+                else {
+                  return "1";
+                }
+              })
+              .attr("fill", d=>{
+                if (d.target.status === 1 || d.target.status === 2){
+                  return "orange";
+                }
+                else{
+                  return "#EFEEED";
+                }
+              })
+              .attr("d", d=>{
+                d.plot = [];
+                return d.getLinkPath();
+              });
+          state2Update();
+    })
+
+  }
+  else if (tree.status === 2){
+    state2Update();
+  }
+  else if (tree.status === 1){
+    tree.status = 0;
+    tree.recover();
+    d3.selectAll(".nodeG").selectAll("rect").transition()
+        .delay(500)
+        .duration(500)
+        .attr("fill", "#5F89A5");
+    d3.selectAll(".linkG").selectAll("path").transition()
+        .delay(500)
+        .duration(500)
+        .attr("fill-opacity", 1)
+        .attr("fill", "#EFEEED")
+        .end()
+        .then(function (){
+          updateNodesStatus(node);
+          tree.status = 1;
+          renderUpdate();
+        });
+  }
+
+  function state2Update(){
+    // 第三步鱼眼复原 与 颜色恢复一起
+    tree.status = 0;
+    tree.recover();
+    d3.selectAll(".nodeG").selectAll("rect").transition()
+        .delay(500)
+        .duration(500)
+        .attr("fill", "#5F89A5")
+        .attr("x", d =>{
+          return d.x - nodeWid/2*d.extension
+        })
+        .attr("y", d => {
+          return d.y - nodeHei/2;
+        })
+        .attr("width", d => nodeWid*d.extension);
+    d3.selectAll(".linkG").selectAll("path").transition()
+        .delay(500)
+        .duration(500)
+        .attr("fill-opacity", 1)
+        .attr("fill", "#EFEEED")
+        .attr("d", d=>{
+          return d.getLinkPath();
+        });
+    d3.selectAll(".VRBorders").transition().delay(500).duration(500)
+        .attr("x", d => d.x - nodeWid/2*d.extension)
+        .attr("y", d => d.y - nodeHei/2)
+        .attr("width", d => nodeWid*d.extension)
+        .end()
+        .then(function (){
+          updateNodesStatus(node);
+          tree.status = 1;
+          renderUpdate();
+        });
   }
 }
 
@@ -282,6 +477,61 @@ function textUpdate(index, update){
 }
 
 /**
+ * 鼠标经过一条边时，高亮或者恢复边以及其节点的颜色
+ * @param line
+ * @param highlight
+ */
+function highlightLine(line, highlight){
+  let lineSvg = d3.select("#line"+line.target.index);
+  let parentSvg = d3.select("#node"+line.source.index);
+  let childSvg = d3.select("#node"+line.target.index);
+  if (highlight){
+    lineSvg.transition().duration(100)
+        .attr("opacity", "0.3")
+        .attr("fill", "orange");
+
+    parentSvg.transition().duration(100)
+        .attr("fill", "orange");
+    if (!childSvg.empty()){
+      childSvg.transition().duration(100)
+          .attr("fill", "orange");
+    }
+  }
+  else{
+    lineSvg.transition().duration(100)
+        .attr("opacity", "1")
+        .attr("fill", d=>{
+          if (d.target.status === 1 || d.target.status === 2){
+            return "orange";
+          }
+          else{
+            return "#EFEEED";
+          }
+        });
+    parentSvg.transition().duration(100)
+        .attr("fill", d => {
+          if (d.status === 0){
+            return "#5F89A5";
+          }
+          else{
+            return "orange";
+          }
+        });
+    if (!childSvg.empty()){
+      childSvg.transition().duration(100)
+          .attr("fill", d => {
+            if (d.status === 0){
+              return "#5F89A5";
+            }
+            else{
+              return "orange";
+            }
+          });
+    }
+  }
+
+}
+/**
  * 更改当前节点，以及其父亲孩子节点的状态
  * @param node
  */
@@ -294,7 +544,6 @@ function updateNodesStatus(node){
     tree.nodes[node.parent[i]].status = 3;
   }
 }
-
 
 /***
  * 鼠标点击或者悬浮于某一个节点
@@ -758,6 +1007,7 @@ d3.csv("./data/reConstructData/301_Friedrich-Wieck_200.csv").then(function (data
   reConstructCoordi(tree);
   console.log(tree);
 
+
   /**
    * 重新计算节点坐标
    *  -原来的节点不同父母的节点是靠在一起的
@@ -778,7 +1028,6 @@ d3.csv("./data/reConstructData/301_Friedrich-Wieck_200.csv").then(function (data
   })
   // 初始化绘制树
   renderInit();
-
 
   // 触发某个节点，focus节点展开，其余节点压缩
   // focusNodeEnter(10);

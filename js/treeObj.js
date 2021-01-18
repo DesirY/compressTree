@@ -12,6 +12,7 @@
  *    -状态
  *      -0 普通 -2 显示子节点的属性矩形
  *    -虚实节点集合
+ *    -当前的focus节点
  *
  *  -方法
  *    -对外接口
@@ -41,6 +42,7 @@ function Tree(root){
   this.isFold = false;      // 标志当前整棵树是折叠状态还是展开状态
   this.status = 0;        // 默认状态是0
   this.VRNodes = getVRNodes(this.nodes);    // 所有的虚实节点
+  this.focus = null;      // 树中的关注节点
 
   function getVRNodes(nodes){
     let res = [];
@@ -519,6 +521,7 @@ Tree.prototype.recover = function (){
     this.nodes[i].x = this.nodes[i].initialX;
     this.nodes[i].y = this.nodes[i].initialY;
     this.nodes[i].extension = 1;
+    this.nodes[i].status = 0;
   }
 }
 /**
