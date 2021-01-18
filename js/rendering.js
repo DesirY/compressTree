@@ -12,7 +12,7 @@ let tree;   // 树对象
 let layers;   //绘制该树的层数
 let separation;   //svg中层与层之前的高度
 let numOfEachLayer = [];  //每层的节点个数
-const gap = 2.3;     // 节点和边之间的间隔大小
+const gap = 2.3*2;     // 节点和边之间的间隔大小
 const familyGap = 0.5;    // 不同父母的节点之间的gap，gap*节点宽度为实际的间隔
 let attrRect;     // 显示属性的矩形框
 let valueY;       // Y = valueY 这条直线 也是之后的边的Y值
@@ -97,6 +97,8 @@ function renderInit(){
               /**
                * 双击节点显示出节点的父亲和孩子
                */
+              // 点击事件发生后，先把节点边框取消
+              removeLabel(d.index);
               if (tree.status === 0){
                 // 默认状态下点击节点，更改节点的状态和树的状态
                 updateNodesStatus(d);
@@ -208,7 +210,7 @@ function renderUpdate(){
         let path;
         if (tree.status === 3 && d.target.status === 2){
           let temp = d.target.y;
-          d.target.y = valueY + nodeHei/2;
+          d.target.y = valueY + nodeHei/2 + gap;
           path = d.getLinkPath();
           d.target.y = temp;
         }
@@ -223,7 +225,6 @@ function renderUpdate(){
       .attr("x", d => d.x - nodeWid/2*d.extension)
       .attr("y", d => d.y - nodeHei/2)
       .attr("width", d => nodeWid*d.extension);
-
 
   // 显示矩形框 子节点的边上拉
   if (tree.status === 3){
@@ -482,11 +483,11 @@ function showChildrenAttributes(index){
   let focusNode = tree.nodes[index];  // 当前节点
   let fNode = tree.nodes[focusNode.children[0]],
       lNode = tree.nodes[focusNode.children[focusNode.children.length-1]];    // 第一个和最后一个节点
-  valueY = fNode.y - nodeHei/2 - attrRect[3] - gap;       // y = valueY 这条直线
+  valueY = fNode.y - nodeHei/2 - attrRect[3] - gap*2;       // y = valueY 这条直线
   let separation = fNode.y - focusNode.y - nodeHei;
-  attrRect[0] = fNode.x - fNode.extension*nodeWid/2;
-  attrRect[1] = fNode.y - attrRect[3] - nodeHei/2;
-  attrRect[2] = lNode.x + lNode.extension*nodeWid/2 - (fNode.x - fNode.extension*nodeWid/2);
+  attrRect[0] = fNode.x - fNode.extension*nodeWid/2 - familyGap*nodeWid;
+  attrRect[1] = fNode.y - attrRect[3] - nodeHei/2 - gap;
+  attrRect[2] = lNode.x + lNode.extension*nodeWid/2 - (fNode.x - fNode.extension*nodeWid/2)+2*familyGap*nodeWid;
 
   // 得到与index节点位于同一层的左右两边节点，并处理节点，使开头结尾节点是有孩子节点
   let focusLayer = focusNode.depth;
