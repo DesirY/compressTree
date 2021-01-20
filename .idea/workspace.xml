@@ -11,7 +11,6 @@
     <list default="true" id="86123b03-b229-4a2f-997d-6081b2563f34" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/js/rendering.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/rendering.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/treeObj.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/treeObj.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,6 +80,7 @@
       <workItem from="1610673729816" duration="22087000" />
       <workItem from="1610893215811" duration="1605000" />
       <workItem from="1610933089763" duration="23489000" />
+      <workItem from="1611019234915" duration="9653000" />
     </task>
     <servers />
   </component>
@@ -120,10 +120,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="681" y="261" width="582" height="524" key="StructurePopup/0.0.1920.1040@0.0.1920.1040" timestamp="1609147613825" />
-    <state x="616" y="240" key="run.anything.popup" timestamp="1609310074164">
+    <state x="616" y="240" key="run.anything.popup" timestamp="1611024643281">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="616" y="240" key="run.anything.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1609310074164" />
+    <state x="616" y="240" key="run.anything.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1611024643281" />
     <state x="600" y="200" width="894" height="840" key="search.everywhere.popup" timestamp="1610957409494">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>

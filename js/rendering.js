@@ -60,10 +60,10 @@ function renderInit(){
             // .attr("fill", "#999")
             .attr("fill-opacity", "1")
             .attr("d", d => d.getLinkPath())
-            .on("mouseover", function (){
+            .on("=", function (){
               highlightLine(d, true);
             })
-            .on("mouseout", function (){
+            .on("", function (){
               highlightLine(d, false);
             });
       });
@@ -101,55 +101,7 @@ function renderInit(){
               }
             })
             .on("click", function (){
-              /**
-               * 双击节点显示出节点的父亲和孩子
-               */
-              // 点击事件发生后，先把节点边框取消
-              removeLabel(d.index);
-              // 如果focus点不存在或者此次点击的点与focus一致，则继续 反之替换focus节点
-              if (!tree.focus || tree.focus.index === d.index){
-                if (!tree.focus){
-                  tree.focus = d;
-                }
-                if (tree.status === 0){
-                  // 默认状态下点击节点，更改节点的状态和树的状态
-                  updateNodesStatus(d);
-                  tree.status = 1;
-                  renderUpdate();
-                }
-                else if (tree.status === 1){
-                  // 展开三代
-                  detailDisplayEnter(d.index);
-                  // 鱼眼变换
-                  tree.fishEye(d.index, 1);
-                  tree.status = 2;
-                  // 更改节点的extension值
-                  d.extension = 2;
-                  for (let i = 0; i < d.parent.length; i++){
-                    tree.nodes[d.parent[i]].extension = 2;
-                  }
-                  for (let i = 0; i < d.children.length; i++){
-                    tree.nodes[d.children[i]].extension = 2;
-                  }
-                  // 重新绘制
-                  renderUpdate();
-                }
-                else if (tree.status === 2){
-                  /**
-                   * 展开子节点，成为一个矩形，周围的边绕开
-                   */
-                  tree.status = 3;    // 显示矩形属性框
-                  showChildrenAttributes(d.index);
-                  // 重新绘制
-                  renderUpdate();
-                }
-              }
-              else {
-                // focus节点替换
-                tree.focus = d;
-                renderFocusChangeUpdate(d);
-              }
-
+              nodeClickListener(d);
             })
             .on("mouseover",function (){
               console.log("鼠标放在了上面");
@@ -227,7 +179,68 @@ function renderUpdate(){
             return "1";
           }
         }
-  });
+  })
+      .attr("stroke", function (d){
+        if (d.status !== 0 && (tree.status === 2 || tree.status === 3)){
+          // 此时就要使用label代替节点了
+          return "orange";
+        }
+        else{
+          return "#EFEEED";
+        }
+      })
+      .attr("stroke-width", function (d){
+        if (d.status !== 0 && (tree.status === 2 || tree.status === 3)){
+          // 此时就要使用label代替节点了
+          return 1;
+        }
+        else{
+          return 0.3;
+        }
+      })
+      .end()
+      .then(function (){
+        // 如果状态为2，显示label
+        if (tree.status === 2){
+          // 父代，自己，以及子代节点 都要显示出label
+          let labelNodes = [tree.focus];
+          for (let i = 0; i < tree.focus.parent.length; i++){
+            labelNodes.push(tree.nodes[ tree.focus.parent[i]]);
+          }
+          for (let i = 0; i < tree.focus.children.length; i++){
+            labelNodes.push(tree.nodes[ tree.focus.children[i]]);
+          }
+          svg.selectAll(".labelNodes").data(labelNodes).enter().append("text")
+              .classed("labelNodes", true)
+              .attr("x", d => d.x)
+              .attr("y", d => d.y)
+              .attr("dy", "0.4em")
+              .attr("text-anchor", "middle")
+              .attr("font-family", "helvetica")
+              .attr("font-size", "12px")
+              .attr("opacity", "0")
+              .attr("fill", "#353635")
+              .on("click", function (e, d){
+                if (tree.status === 2 && tree.focus.index === d.index){
+                  /**
+                   * 展开子节点，成为一个矩形，周围的边绕开
+                   */
+                  tree.status = 3;    // 显示矩形属性框
+                  showChildrenAttributes(d.index);
+                  // 重新绘制
+                  renderUpdate();
+                }
+                if (tree.focus.index !== d.index){
+                  nodeClickListener(d);
+                }
+
+              })
+              .text("Tom")
+              .transition()
+              .duration(300)
+              .attr("opacity", "0.9");
+        }
+      });
 
   // 边过渡
   linksUpdate.transition()
@@ -301,15 +314,15 @@ function renderUpdate(){
         .attr("y", attrRect[1]+attrRect[3])
         .attr("width", nodeWid*1.2)
         .attr("height", 0)
-        .attr("fill", "#5F89A5")
-        .attr("opacity", 1)
+        .attr("fill", "orange")
+        .attr("opacity", 0.8)
         .classed("bar", true)
         .transition()
         .delay(800)
         .duration(500)
         .attr("y", (d, i)=>attrRect[1]+attrRect[3]-scaleY(numText[i]))
         .attr("height", (d, i)=>scaleY(numText[i]));
-
+    // #5F89A5
     // 绘制文本
     attrG.selectAll("barText").data(tree.focus.children).enter().append("text")
         .attr("x", d => tree.nodes[d].x)
@@ -345,7 +358,7 @@ function renderFocusChangeUpdate(node){
         .remove()
         .end()
         .then(()=>{
-          // 第二步文本框消失，短线恢复原长，折线恢复原始状态
+          // 第二步属性框消失，短线恢复原长，折线恢复原始状态
           d3.select("#attrRect").transition().duration(500)
               .attr("y", attrRect[1]+attrRect[3])
               .attr("height", 0)
@@ -374,8 +387,10 @@ function renderFocusChangeUpdate(node){
               .attr("d", d=>{
                 d.plot = [];
                 return d.getLinkPath();
-              });
-          state2Update();
+              })
+              .end().then(function (){
+                state2Update();
+          })
     })
 
   }
@@ -403,11 +418,10 @@ function renderFocusChangeUpdate(node){
   }
 
   function state2Update(){
-    // 第三步鱼眼复原 与 颜色恢复一起
+    // 第三步鱼眼复原 与 label恢复一致
     tree.status = 0;
     tree.recover();
     d3.selectAll(".nodeG").selectAll("rect").transition()
-        .delay(500)
         .duration(500)
         .attr("fill", "#5F89A5")
         .attr("x", d =>{
@@ -416,16 +430,17 @@ function renderFocusChangeUpdate(node){
         .attr("y", d => {
           return d.y - nodeHei/2;
         })
-        .attr("width", d => nodeWid*d.extension);
+        .attr("width", d => nodeWid*d.extension)
+        .attr("stroke", "#EFEEED")
+        .attr("stroke-width", "0.3");
     d3.selectAll(".linkG").selectAll("path").transition()
-        .delay(500)
         .duration(500)
         .attr("fill-opacity", 1)
         .attr("fill", "#EFEEED")
         .attr("d", d=>{
           return d.getLinkPath();
         });
-    d3.selectAll(".VRBorders").transition().delay(500).duration(500)
+    d3.selectAll(".VRBorders").transition().duration(500)
         .attr("x", d => d.x - nodeWid/2*d.extension)
         .attr("y", d => d.y - nodeHei/2)
         .attr("width", d => nodeWid*d.extension)
@@ -435,9 +450,73 @@ function renderFocusChangeUpdate(node){
           tree.status = 1;
           renderUpdate();
         });
+    d3.selectAll(".labelNodes").transition()
+        .duration(500)
+        .attr("fill-opacity", "0")
+        .remove();
   }
 }
 
+/**
+ * 当节点d接收到点击事件之后的响应函数
+ * @param d
+ */
+function nodeClickListener(d){
+  /**
+   * 双击节点显示出节点的父亲和孩子
+   */
+  // 如果点击的是虚点，设置为实点
+  if (d.virtualStatus === 1){
+    d = tree.nodes[d.counterpart];
+  }
+  // 点击事件发生后，先把节点边框取消
+  removeLabel(d.index);
+  // 如果focus点不存在或者此次点击的点与focus一致，则继续 反之替换focus节点
+  if (!tree.focus || tree.focus.index === d.index){
+    if (!tree.focus){
+      tree.focus = d;
+    }
+    if (tree.status === 0){
+      // 默认状态下点击节点，更改节点的状态和树的状态
+      updateNodesStatus(d);
+      tree.status = 1;
+      renderUpdate();
+    }
+    else if (tree.status === 1){
+      // 展开三代
+      detailDisplayEnter(d.index);
+      // 鱼眼变换
+      tree.fishEye(d.index, 1);
+      tree.status = 2;
+      // 更改节点的extension值 在自动渲染中会有label
+      d.extension = 2.3;
+      tree.nodes[d.parent[0]].extension = 2.3;
+      for (let i = 0; i < d.children.length; i++){
+        tree.nodes[d.children[i]].extension = 2.3;
+      }
+      // 如果是虚拟节点的实点，父代也要展开
+      if (d.virtualStatus === 2){
+        tree.focusNode(d.parent[1], 2.3);
+      }
+      // 重新绘制
+      renderUpdate();
+    }
+    else if (tree.status === 2){
+      /**
+       * 展开子节点，成为一个矩形，周围的边绕开
+       */
+      tree.status = 3;    // 显示矩形属性框
+      showChildrenAttributes(d.index);
+      // 重新绘制
+      renderUpdate();
+    }
+  }
+  else {
+    // focus节点替换
+    tree.focus = d;
+    renderFocusChangeUpdate(d);
+  }
+}
 /***
  * 更新显示文本信息
  * @param index
