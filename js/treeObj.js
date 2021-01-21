@@ -376,17 +376,29 @@ function Tree(root){
   Tree.prototype.getShortestPath = function (src, des){
     let min = Math.min(src, des), max = Math.max(src, des);
     let layers = this.nodes[max].depth - this.nodes[min].depth;
-    let path = [max];
+    let path1 = [max];    // 两条路径，第一条是src-》共同祖先（由下往上），如果des正好是共同祖先，第二条路径为空
+    let path2 = [];     // 第二条路径是由上往下的
     let curNode = this.nodes[max];
     while(layers){
       curNode = this.nodes[curNode.parent[0]];
-      path.push(curNode.index);
+      path1.push(curNode.index);
       layers--;
     }
-    if(path[path.length-1] === min){
-      return path;
+    if(path1[path1.length-1] === min){
+      return path1;
     }
-    return [];
+    else{
+      path2 = [min]
+      let left = path1[path1.length-1];
+      let right = min;
+      while (left !== right){
+        left = this.nodes[left].parent[0];
+        right = this.nodes[right].parent[0];
+        path1.push(left);
+        path2.push(right);
+      }
+    }
+    return [path1, path2];
   }
 
 }

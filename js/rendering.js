@@ -246,7 +246,7 @@ function renderUpdate(){
   linksUpdate.transition()
       .duration(800)
       .attr("fill-opacity", d=>{
-        if (d.target.status === 1 || d.target.status === 2){
+        if (d.target.status === 1 || d.target.status === 2 || d.target.status === 4){
           return "0.3";
         }
         else {
@@ -254,7 +254,7 @@ function renderUpdate(){
         }
       })
       .attr("fill", d=>{
-        if (d.target.status === 1 || d.target.status === 2){
+        if (d.target.status === 1 || d.target.status === 2 || d.target.status === 4){
           return "orange";
         }
         else{
@@ -486,7 +486,7 @@ function nodeClickListener(d){
       // 展开三代
       detailDisplayEnter(d.index);
       // 鱼眼变换
-      tree.fishEye(d.index, 1);
+      tree.fishEye(d.index, 1.0);
       tree.status = 2;
       // 更改节点的extension值 在自动渲染中会有label
       d.extension = 2.3;
@@ -1032,18 +1032,27 @@ function recoverTreeEnter(){
  * @param des
  */
 function shortestPathEnter(src, des){
-  let path = tree.getShortestPath(src, des);
-  for (let i = 0; i < path.length; i++){
-    tree.detailDisplay(tree.nodes[path[i]].depth, [path[i]], 8);
+  let paths = tree.getShortestPath(src, des);
+
+  // 更改节点的状态
+  for (let i = 0; i < paths.length; i++){
+    for (let j = 0; j < paths[i].length; j++){
+      tree.nodes[paths[i][j]].status = 4;
+    }
+    tree.nodes[paths[0][paths[0].length-1]].status = 5;
   }
-  let center = 0;
-  for (let i = 0; i < path.length; i++){
-    center += tree.nodes[path[i]].x;
-  }
-  center /= path.length;
-  for(let i = 0; i < path.length; i++){
-    // tree.centering(tree.nodes[path[i]].depth, [path[i]], (center-tree.nodes[path[i]].x)/nodeWid);
-  }
+
+  // for (let i = 0; i < path.length; i++){
+  //   tree.detailDisplay(tree.nodes[path[i]].depth, [path[i]], 8);
+  // }
+  // let center = 0;
+  // for (let i = 0; i < path.length; i++){
+  //   center += tree.nodes[path[i]].x;
+  // }
+  // center /= path.length;
+  // for(let i = 0; i < path.length; i++){
+  //   // tree.centering(tree.nodes[path[i]].depth, [path[i]], (center-tree.nodes[path[i]].x)/nodeWid);
+  // }
   renderUpdate();
 }
 
@@ -1115,9 +1124,8 @@ d3.csv("./data/reConstructData/301_Friedrich-Wieck_200.csv").then(function (data
   // compressTreeEnter();
 
   //显示两点之间的最短路径
-  // shortestPathEnter(2, 195);
-
-
+  // shortestPathEnter(93, 83);
+  shortestPathEnter(139, 78);
 
 })
 
