@@ -1125,7 +1125,7 @@ d3.csv("./data/reConstructData/301_Friedrich-Wieck_200.csv").then(function (data
 
   //显示两点之间的最短路径
   // shortestPathEnter(93, 83);
-  shortestPathEnter(139, 78);
+  shortestPathEnter(100, 190);
 
 })
 

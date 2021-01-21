@@ -384,10 +384,7 @@ function Tree(root){
       path1.push(curNode.index);
       layers--;
     }
-    if(path1[path1.length-1] === min){
-      return path1;
-    }
-    else{
+    if(path1[path1.length-1] !== min){
       path2 = [min]
       let left = path1[path1.length-1];
       let right = min;
