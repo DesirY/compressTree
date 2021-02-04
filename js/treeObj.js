@@ -543,48 +543,27 @@ Tree.prototype.recover = function (){
 Tree.prototype.fishEye = function (index, m){
   // 得到focus节点所在层
   let focusLayer = this.nodes[index].depth;
+  let cY = abstractTree[focusLayer+1];
 
-  // 计算相邻层节点的Y坐标
-  let lastLayerNodes = this.nodesInEachLayer[focusLayer-1];
-  let nextLayerNodes = this.nodesInEachLayer[focusLayer+1];
-  // 备份Y坐标
-  let lastYCopy = this.nodes[lastLayerNodes[0]].y;
-  let nextYCopy = this.nodes[nextLayerNodes[0]].y;
-  let lastY = this.nodes[index].y - (this.nodes[index].y - this.nodes[lastLayerNodes[0]].y)*(1+m);
-  let nextY = this.nodes[index].y + (this.nodes[nextLayerNodes[0]].y - this.nodes[index].y)*(1+m);
-  for (let i = 0; i < lastLayerNodes.length; i++){
-    this.nodes[lastLayerNodes[i]].y = lastY;
-  }
-  for (let i = 0; i < nextLayerNodes.length; i++){
-    this.nodes[nextLayerNodes[i]].y = nextY;
-  }
-
-  // 计算其它层节点的Y坐标
   for (let i = 0; i < this.height; i++){
-    if (Math.abs(i - focusLayer) > 1){
-      // 得到该层的所有节点，以及Y坐标
-      let layerNodes = this.nodesInEachLayer[i];
-      let layerY = this.nodes[layerNodes[0]].y;
-      // 计算鱼眼需要的一些系数
-      let bY = 12;   // 屏幕的交点
-      if (i - focusLayer > 0){
-        bY = height -12;    // 位于下面，则B点是在屏幕的下方
-      }
-      let cY = this.nodes[index].y;
-      let mR = 0;
-      if (i - focusLayer < 0){
-        mR = m/(1-(m+1)*((lastYCopy - cY)/(bY - cY)))
+    if (i !== focusLayer){
+      let beta;
+      let bi;
+      if (i > focusLayer){
+        bi = abstractTree[abstractTree.length-1];
+        beta = (abstractTree[i+1]-cY)/(bi-cY);
       }
       else {
-        mR = m/(1-(m+1)*((nextYCopy - cY)/(bY - cY)))
+        bi = abstractTree[0];
+        beta = (abstractTree[i+1]-cY)/(bi-cY);
       }
-      let beta = Math.abs(layerY-cY)/Math.abs(bY-cY);
-      let betaNew = (m+1)*beta/(m*beta+1);
-      //计算新的Y值
-      let newY = cY + (bY-cY)*betaNew;
+      let beta_ = (m+1)*beta/(m*beta+1);
+      let translateY = cY+(bi - cY)*beta_ - abstractTree[i+1];  // 每行平移的位置
 
-      for (let j = 0; j < layerNodes.length; j++){
-        this.nodes[layerNodes[j]].y = newY;
+      // 得到该行所有的节点
+      let nodesInRow = this.nodesInEachLayer[i];
+      for (let j = 0; j < nodesInRow.length; j++){
+        this.nodes[nodesInRow[j]].y += translateY;
       }
     }
   }

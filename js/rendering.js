@@ -16,6 +16,7 @@ const gap = 2.3*2;     // 节点和边之间的间隔大小
 const familyGap = 0.5;    // 不同父母的节点之间的gap，gap*节点宽度为实际的间隔
 let attrRect;     // 显示属性的矩形框
 let valueY;       // Y = valueY 这条直线 也是之后的边的Y值
+let abstractTree = [];   // 抽象树，在这个树中，节点由点来表示，边长使用节点之间的边表示
 
 let Gradient;   // 颜色渐变器
 let links;     // 边元素
@@ -486,7 +487,7 @@ function nodeClickListener(d){
       // 展开三代
       detailDisplayEnter(d.index);
       // 鱼眼变换
-      tree.fishEye(d.index, 1.0);
+      tree.fishEye(d.index, 3.0);
       tree.status = 2;
       // 更改节点的extension值 在自动渲染中会有label
       d.extension = 2.3;
@@ -1069,6 +1070,20 @@ function reConstructCoordi(tree){
   }
 }
 
+/**
+ * 初始化抽象树
+ * AbstractTree 是一个数组，其中每个值代表的是每个节点的Y值，第一个值和最后一个值代表屏幕的边缘值
+ * @param tree
+ */
+function initAbstractTree(tree){
+  abstractTree[0] = 0;
+  abstractTree[1] = tree.nodes[0].y - nodeHei/2;
+  let edgeLen = separation - 2*gap;     // 这里写下边的长度
+  for (let i = 1; i < tree.height; i++){
+    abstractTree.push(abstractTree[i] + edgeLen);
+  }
+  abstractTree.push(abstractTree[abstractTree.length-1]+ height - tree.nodes[tree.nodes.length-1].y -nodeHei/2);
+}
 
 //读取文件
 d3.csv("./data/reConstructData/301_Friedrich-Wieck_200.csv").then(function (data){
@@ -1086,7 +1101,7 @@ d3.csv("./data/reConstructData/301_Friedrich-Wieck_200.csv").then(function (data
     numOfEachLayer[rootTemp.descendants()[i].depth]++;
   }
 
-  console.log(rootTemp)
+  console.log(rootTemp);
   // 节点预处理：为每个节点计算坐标，索引，并标注其在兄弟姐妹中的位置
   let rootNode = preprocessing(rootTemp);     // rootTemp和rootNode指向的是同一个对象
 
@@ -1095,6 +1110,9 @@ d3.csv("./data/reConstructData/301_Friedrich-Wieck_200.csv").then(function (data
   reConstructCoordi(tree);
   console.log(tree);
 
+  // 初始化抽象树结构
+  initAbstractTree(tree);
+  console.log(abstractTree);
 
   /**
    * 重新计算节点坐标
@@ -1126,7 +1144,6 @@ d3.csv("./data/reConstructData/301_Friedrich-Wieck_200.csv").then(function (data
   //显示两点之间的最短路径
   // shortestPathEnter(93, 83);
   shortestPathEnter(100, 190);
-
 })
 
 
